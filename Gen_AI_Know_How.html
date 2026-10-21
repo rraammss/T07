@@ -22,7 +22,7 @@
   color-scheme:dark;
 }
 html,body{height:100%;margin:0;background:radial-gradient(120% 75% at 50% 24%,#0f1b33 0%,#070c18 50%,#03050b 100%) fixed,var(--bg);color:var(--ink);overflow:hidden;font-family:var(--sans)}
-#gl{position:fixed;inset:0;display:block;touch-action:none}
+#gl{position:fixed;inset:0;display:block;width:100%;height:100%;touch-action:none}   /* fill the screen exactly, at any pixel density */
 #labels{position:fixed;inset:0;pointer-events:none;overflow:hidden}
 .lbl{position:absolute;left:0;top:0;white-space:nowrap;opacity:0;transition:opacity .45s ease;will-change:transform}
 .lbl.on{opacity:1}
