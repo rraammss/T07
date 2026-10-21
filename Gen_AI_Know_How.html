@@ -27,6 +27,14 @@ html,body{height:100%;margin:0;background:radial-gradient(120% 75% at 50% 24%,#0
 .lbl{position:absolute;left:0;top:0;white-space:nowrap;opacity:0;transition:opacity .45s ease;will-change:transform}
 .lbl.on{opacity:1}
 .lbl.case{font:500 16px/1.4 var(--mono);letter-spacing:.18em;color:#fff3d6;text-align:center;text-shadow:0 0 14px rgba(255,210,130,.55),0 1px 6px rgba(3,6,12,.9)}
+.lbl.hint{pointer-events:none;transition:opacity .35s ease}
+.lbl.hint .hb{display:flex;align-items:center;gap:8px;padding:9px 14px;border-radius:999px;background:rgba(8,13,25,.92);border:1px solid var(--c);
+  box-shadow:0 0 16px color-mix(in srgb,var(--c) 45%,transparent);font:500 13.5px/1 var(--sans);color:#fff;white-space:nowrap;animation:hintBob 1.6s ease-in-out infinite}
+.lbl.hint .hb::after{content:"";position:absolute;left:50%;bottom:-7px;width:12px;height:12px;background:rgba(8,13,25,.92);border-right:1px solid var(--c);border-bottom:1px solid var(--c);transform:translateX(-50%) rotate(45deg)}
+.lbl.hint .hb{position:relative}
+.lbl.hint .k{font:500 11px/1 var(--mono);letter-spacing:.12em;color:var(--c)}
+@keyframes hintBob{50%{transform:translateY(-5px)}}
+@media (prefers-reduced-motion:reduce){.lbl.hint .hb{animation:none}}
 .lbl.dim{font:500 11.5px/1 var(--mono);letter-spacing:.14em;color:#c9d5ea;text-transform:uppercase}
 .lbl.case small{color:#d9c9a6!important;text-shadow:0 1px 6px rgba(3,6,12,.95);display:block;color:var(--dim);letter-spacing:.08em;font-size:11.5px;margin-top:4px}
 .lbl.bundle{text-align:center;text-shadow:0 1px 8px rgba(3,6,12,.9)}
@@ -653,9 +661,21 @@ function flyTo(s, dur = 1.3) {
   if (s.yaw !== undefined) { s = {...s}; while (s.yaw - a.yaw > Math.PI) s.yaw -= TAU; while (a.yaw - s.yaw > Math.PI) s.yaw += TAU; }
   return tween(dur, k => { for (const p in s) rig[p] = lerp(a[p], s[p], k); });
 }
+// the first time inside a bundle: point at one container and say what to do
+const HINT = {L: null, b: null, seen: false};
+function showHint(b) {
+  if (HINT.seen || level !== 2 || cur !== b) return;
+  const r = b.rows[0], blk = r.userData.blocks[0], V3 = new THREE.Vector3();
+  if (!HINT.L) HINT.L = label('hint', '', () => { blk === HINT.blk ? 0 : 0; HINT.blk.getWorldPosition(V3); return V3.clone().add(new THREE.Vector3(0, 0.45, 0)); }, 'above');
+  HINT.blk = blk; HINT.b = b;
+  HINT.L.el.style.setProperty('--c', b.col);
+  HINT.L.el.innerHTML = '<div class="hb"><span class="k">CLICK</span>a container to step inside</div>';
+  show(HINT.L, true);
+}
+function hideHint(forGood) { if (HINT.L) show(HINT.L, false); if (HINT.blk) HINT.blk.material.emissiveIntensity = 0.45; HINT.b = null; if (forGood) HINT.seen = true; }
 async function orbitOnce() {   // one slow turn around the lifted containers, then the viewer drives
   const tok = SWEEP = {}, y0 = rig.yaw, p0 = rig.pitch;
-  await tween(6.5, k => { if (SWEEP !== tok) return; rig.yaw = y0 - TAU * k; rig.pitch = p0 - 0.4 * Math.sin(Math.PI * k); });
+  await tween(5, k => { if (SWEEP !== tok) return; rig.yaw = y0 - TAU * k; rig.pitch = p0 - 0.4 * Math.sin(Math.PI * k); });
   if (SWEEP === tok) { rig.yaw = normYaw(rig.yaw); SWEEP = null; }
 }
 function placeCamera() {
@@ -683,29 +703,28 @@ async function openCase() {
   const w0 = wand.position.clone();
   const tipAt = SEALP.clone().add(new THREE.Vector3(0, 0.12, 0));
   const wPos = tipAt.clone().sub(wandDir.clone().multiplyScalar(WL + 0.03));
-  await tween(0.8, k => { wand.position.lerpVectors(w0, wPos, k); });
-  await tween(0.3, k => { tipGlow.scale.setScalar(0.5 + 0.9 * Math.sin(Math.PI * k)); });
+  await tween(0.45, k => { wand.position.lerpVectors(w0, wPos, k); });
+  await tween(0.15, k => { tipGlow.scale.setScalar(0.5 + 0.9 * Math.sin(Math.PI * k)); });
   // the dial turns like a combination lock: clockwise, back anticlockwise, a last click clockwise
-  const click = () => tween(0.18, k => { sealGlow.material.opacity = 0.25 + 0.45 * Math.sin(Math.PI * k); });
+  const click = () => tween(0.12, k => { sealGlow.material.opacity = 0.25 + 0.45 * Math.sin(Math.PI * k); });
   const sealBase = sealRings.map(m => m.material.color.clone());
   const turnTo = (to, dur) => { const a = seal.rotation.y; return tween(dur, k => { seal.rotation.y = lerp(a, to, k);
     sealRings.forEach((m, i) => m.material.color.setHSL((performance.now() / 1400 + i * 0.18) % 1, 0.55, 0.7)); }); };
-  await turnTo(-Math.PI * 0.9, 0.9); await click();
-  await turnTo(Math.PI * 0.55, 1.0); await click();
-  await turnTo(Math.PI * 0.05, 0.5); await click();
+  await turnTo(-Math.PI * 0.75, 0.42); await click();
+  await turnTo(Math.PI * 0.2, 0.42); await click();
   sealRings.forEach((m, i) => m.material.color.copy(sealBase[i]));
   burst(tipAt);
-  await tween(0.45, k => { tipGlow.scale.setScalar(0.5 + 1.4 * Math.sin(Math.PI * k)); caseLight.intensity = 0.35 + 2 * Math.sin(Math.PI * k); });
-  await tween(0.6, k => { seal.scale.setScalar(1 + 1.6 * k); sealMats.forEach(m => m.opacity = 0.95 * (1 - k)); sealGlow.material.opacity = 0.25 + 0.35 * Math.sin(Math.PI * k); });
+  await tween(0.3, k => { tipGlow.scale.setScalar(0.5 + 1.4 * Math.sin(Math.PI * k)); caseLight.intensity = 0.35 + 2 * Math.sin(Math.PI * k); });
+  await tween(0.35, k => { seal.scale.setScalar(1 + 1.6 * k); sealMats.forEach(m => m.opacity = 0.95 * (1 - k)); sealGlow.material.opacity = 0.25 + 0.35 * Math.sin(Math.PI * k); });
   seal.visible = false;
   tween(0.9, k => { wand.position.y = wPos.y + 2.5 * k; wandMats.forEach(m => m.opacity = 1 - k); }).then(() => { wand.visible = false; });
   tween(1.2, k => { TRI.children.forEach(o => o.material.opacity = 0.75 * (1 - k)); chart.material.opacity = 0.55 * k; ambient.material.opacity = 0.55 - 0.25 * k; });
-  await tween(0.9, k => { caseLidPivot.rotation.x = -1.95 * k; caseLight.intensity = 1.6 * k; caseHalo.material.opacity = 0.22 + 0.25 * k; CORE.k = k; });
+  await tween(0.7, k => { caseLidPivot.rotation.x = -1.95 * k; caseLight.intensity = 1.6 * k; caseHalo.material.opacity = 0.22 + 0.25 * k; CORE.k = k; });
   // the three bundles rise out of the case and settle in their places
-  const fly = flyTo(shot(1), 1.6);
+  const fly = flyTo(shot(1), 1.2);
   wait(0.45).then(() => tween(0.35, k => { setOpacity(caseBody, 1 - k, 1 - k); setOpacity(caseLid, 1 - k, 1 - k); caseHalo.material.opacity = 0.47 * (1 - k); caseLight.intensity = 1.6 * (1 - k); caseGlows.forEach(m => m.material.opacity = m.userData.base * (1 - k)); frontName.material.opacity = 1 - k; seam.material.opacity = 0.35 * (1 - k); inner.material.opacity = 1 - k; })).then(() => tween(0.6, k => { CORE.k = 1 - k; })).then(() => { caseG.visible = false; CORE.k = 0; inner.material.opacity = 1; coreMat.opacity = 0; beamMat.opacity = 0; FOUNT.pts.material.opacity = 0; });
   BUNDLES.forEach(b => { b.root.visible = true; b.root.position.set(0, 0.3, 0); b.root.scale.setScalar(0.2); });
-  await Promise.all(BUNDLES.map((b, i) => wait(i * 0.12).then(() => tween(1.25, k => {
+  await Promise.all(BUNDLES.map((b, i) => wait(i * 0.08).then(() => tween(0.95, k => {
     b.root.position.set(lerp(0, b.pos[0], k), 0.3 * (1 - k) + 4.2 * Math.sin(Math.PI * k), lerp(0, b.pos[2], k));
     b.root.scale.setScalar(lerp(0.2, 1, k));
     b.pl.intensity = 0.5 * k;
@@ -783,9 +802,10 @@ async function openBundle(b) {
   await Promise.all([flyTo(shot(2, b), 1.35), tween(0.6, k => dimOthers(b, k))]);
   await openInner(b);
   busy = false; ui();
-  orbitOnce();
+  orbitOnce().then(() => showHint(cur));
 }
 async function closeBundle() {
+  hideHint(false);
   const b = cur; busy = true;
   await closeInner(b);
   await Promise.all([flyTo(shot(1), 1.25), tween(0.6, k => dimOthers(b, 1 - k))]);
@@ -793,6 +813,7 @@ async function closeBundle() {
   cur = null; level = 1; busy = false; ui();
 }
 async function nextBundle() {
+  hideHint(false);
   const b = cur, nb = BUNDLES[(b.i + 1) % BUNDLES.length]; busy = true;
   await closeInner(b);
   cur = nb; ui();
@@ -802,7 +823,7 @@ async function nextBundle() {
   })]);
   await openInner(nb);
   busy = false; ui();
-  orbitOnce();
+  orbitOnce().then(() => showHint(cur));
 }
 // ───────────── layer 3: step inside a container ─────────────
 // every session is a container. Inside: left wall = the problem, back wall = the architecture, right wall = the demo.
@@ -1105,6 +1126,7 @@ async function nextCoach() {   // walk through the gangway into the next session
   tourRoom();
 }
 async function openSession(b, j, s) {
+  hideHint(true);
   busy = true; setHover(null);
   const blk = b.rows[j].userData.blocks[s], p = new THREE.Vector3(); blk.getWorldPosition(p);
   b.rowLabels.forEach(L => show(L, false));
@@ -1191,6 +1213,7 @@ function setHover(h) {
   if (hover && hover.kind === 'case') { SEAL_HOT = false; seal.scale.setScalar(1); tipGlow.scale.set(0.5, 0.5, 1); }
   hover = h;
   if (h && h.kind === 'bundle') { h.b.root.position.y = 0; h.b.pl.intensity = 1.0; h.b.cloud.material.opacity = 1; }
+  if (h && h.kind === 'row' && h.s != null && HINT.b) hideHint(true);
   if (h && h.kind === 'row') {
     const r = cur.rows[h.j]; r.userData.slab.userData.edges.material.color.set(cur.col);
     r.userData.blocks.forEach((m, s) => { m.material.emissiveIntensity = s === h.s ? 1.4 : 0.75; });
@@ -1220,7 +1243,7 @@ function caption() {
       : SES.s < SESSIONS - 1 ? tag + `<br><b>Walk on through the gangway into session ${SES.s + 2}</b> · or press E to leave`
       : tag + '<br><b>Last session of this track</b> · walk on to leave through the exit · or press E';
   }
-  else html = `<b>${esc(cur.line)}</b><br>Drag to look around · hover a container · scroll out to step back · → next bundle`;
+  else html = `<b>${esc(cur.line)}</b><br>Click any container to step inside that session · drag to look around · scroll out to step back`;
   CAP.innerHTML = html;
   CAP.hidden = level === 3;   // inside a container the session strip and the doorway already say it
 }
@@ -1334,17 +1357,14 @@ Object.assign(rig, shot(0)); rig.dist *= 1.35; rig.pitch = 0.2;   // the opening
 show(caseLabel, false); ui();
 async function introCase() {
   const tok = SWEEP = {};
-  const y0 = rig.yaw, p0 = rig.pitch;
-  await tween(4.5, k => { if (SWEEP === tok) { rig.yaw = y0 - TAU * k; rig.pitch = p0 + 0.08 * Math.sin(Math.PI * k); } });
-  if (SWEEP !== tok) return;
-  rig.yaw = normYaw(rig.yaw);
-  // now rise, slowly, until the lid and its seal fill the view
-  const a = {...rig}, b = {tx: 0, ty: CASE.h, tz: 0.3, yaw: rig.yaw - 0.15, pitch: 1.0, dist: fitDist(9, 6.5)};
-  await tween(2.2, k => { if (SWEEP === tok) for (const q in b) rig[q] = lerp(a[q], b[q], k); });
+  GUIDED = true; caption();   // the seal can be clicked from the first second
+  // rise straight over the lid, turning a quarter on the way, until the seal fills the view
+  const a = {...rig}, b = {tx: 0, ty: CASE.h, tz: 0.3, yaw: rig.yaw - 0.9, pitch: 1.0, dist: fitDist(9, 6.5)};
+  await tween(1.8, k => { if (SWEEP === tok) for (const q in b) rig[q] = lerp(a[q], b[q], k); });
   if (SWEEP !== tok) return;
   SWEEP = null; GUIDED = true; caption();
 }
-flyTo(shot(0), 2.2).then(() => { show(caseLabel, true); triLabels.forEach(L => show(L, true)); introCase(); });
+flyTo(shot(0), 1.3).then(() => { show(caseLabel, true); triLabels.forEach(L => show(L, true)); introCase(); });
 let t0 = performance.now();
 function frame(now) {
   stepTweens(now);
@@ -1357,6 +1377,7 @@ function frame(now) {
   if (seal.visible && !busy) { runes.rotation.y = tt * (SEAL_HOT ? 0.8 : 0.25); sealRings[1].rotation.z = -tt * 0.4; sealGlow.material.opacity = (SEAL_HOT ? 0.42 : GUIDED ? 0.28 : 0.18) + 0.08 * Math.sin(tt * (GUIDED ? 3 : 1.8)); }
   if (level === 0 && !busy && wand.visible) { wand.position.y = WAND_REST.y + 0.14 * Math.sin(tt * 1.5); tip.material.color.setHSL(0.12, 1, 0.82 + 0.08 * Math.sin(tt * 4)); }
   stepBurst(now);
+  if (HINT.b && level === 2 && !(hover && hover.kind === 'row')) HINT.blk.material.emissiveIntensity = 0.45 + 0.9 * (0.5 + 0.5 * Math.sin(tt * 4));
   if (CORE.k > 0.001 && FOUNT.pts) {   // the fountain inside the opening box
     const a = FOUNT.pts.geometry.attributes.position;
     for (let i = 0; i < FOUNT.n; i++) {
