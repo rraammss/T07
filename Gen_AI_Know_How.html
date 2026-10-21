@@ -105,7 +105,7 @@ html,body{height:100%;margin:0;background:radial-gradient(120% 75% at 50% 24%,#0
 #strip button .tip{position:absolute;bottom:40px;left:50%;transform:translateX(-50%);white-space:nowrap;font-size:11.5px;color:var(--ink);background:rgba(8,13,25,.92);border:.6px solid #33415c;border-radius:6px;padding:6px 9px;opacity:0;pointer-events:none;transition:opacity .15s}
 #strip button:hover .tip,#strip button:focus-visible .tip{opacity:1}
 @media (max-width:900px){#strip{bottom:calc(84px + env(safe-area-inset-bottom,0px))}}
-@media (max-width:560px){#strip{bottom:calc(120px + env(safe-area-inset-bottom,0px))}#strip .tn{display:none}}
+@media (max-width:560px){#strip{bottom:calc(132px + env(safe-area-inset-bottom,0px))}#strip .tn{display:none}}
 #wallBtns[hidden]{display:none}
 #wallBtns .btn{font-size:12.5px;padding:11px 15px}
 #wallBtns .btn.leave{color:#fff3d6;border-color:#ffd98a;background:rgba(60,44,12,.55);box-shadow:0 0 14px rgba(255,210,120,.45),inset 0 0 8px rgba(255,210,120,.18);animation:leaveGlow 2.2s ease-in-out infinite}
@@ -121,6 +121,33 @@ html,body{height:100%;margin:0;background:radial-gradient(120% 75% at 50% 24%,#0
 .lbl.stitle .nm{font:500 17px/1.35 var(--sans);color:#fff;margin-top:7px;white-space:normal;max-width:560px}
 @media (max-width:560px){.lbl.wall .tx{font-size:12px}.lbl.stitle .nm{font-size:14px;max-width:300px}.lbl.bundle .nm{white-space:normal;width:150px;font-size:12.5px}.lbl.track{font-size:11px}#caption{font-size:11.5px;bottom:calc(16px + env(safe-area-inset-bottom,0px))}#nav{bottom:calc(84px + env(safe-area-inset-bottom,0px))}}
 @media (prefers-reduced-motion:reduce){.lbl{transition:none}}
+/* small screens (phones, either way round): one tidy top row, labels sized to the boxes */
+@media (max-width:640px),(max-height:520px){
+  #top{flex-wrap:nowrap;gap:10px;padding-top:calc(10px + env(safe-area-inset-top,0px));background:linear-gradient(#060a14 55%,rgba(6,10,20,0))}
+  #brand{display:none}
+  #classic{font-size:0;padding:7px 10px;flex:none}#classic::before{content:"← Classic";font-size:11px}
+  #crumbs{flex:1;flex-wrap:nowrap;overflow:hidden;font-size:11px;gap:6px}
+  #crumbs>*{flex:none}
+  #crumbs>:nth-last-child(n+4){display:none}
+  #crumbs button{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  #crumbs button.cur{flex:1 1 auto;min-width:0}
+  #bright{flex:none;padding:8px 10px;font-size:11px}
+  .lbl.bundle .ey{font-size:9.5px!important;letter-spacing:.14em}
+  .lbl.bundle .nm{font-size:11.5px!important;white-space:normal;width:118px;margin-top:3px}
+  .lbl.bundle .ct{font-size:9.5px;letter-spacing:.02em}
+  .lbl.case{font-size:13px}
+  .lbl.track{font-size:11px}.lbl.track b{font-size:11px;margin-right:6px}
+  #nav{left:max(12px,env(safe-area-inset-left,0px));right:max(12px,env(safe-area-inset-right,0px));justify-content:center;flex-wrap:wrap}
+  #wallBtns{flex-wrap:wrap;justify-content:center;gap:6px}
+  #wallBtns .btn{font-size:11px;padding:9px 10px;white-space:nowrap}
+  #wallBtns .btn[data-v="-1"],#wallBtns .kb{display:none}
+  #strip{top:calc(58px + env(safe-area-inset-top,0px));bottom:auto!important}#strip button .tip{bottom:auto;top:38px}
+  #nav{bottom:calc(18px + env(safe-area-inset-bottom,0px))!important}
+}
+#zoom{right:max(16px,env(safe-area-inset-right,0px));top:calc(64px + env(safe-area-inset-top,0px));display:flex;flex-direction:column;gap:6px}
+#zoom .btn{width:16px;text-align:center;font-size:15px;padding:9px 11px}
+#zoom[hidden]{display:none!important}
+@media (hover:hover) and (pointer:fine){#zoom{display:none}}
 </style>
 
 </head><body>
@@ -133,10 +160,11 @@ html,body{height:100%;margin:0;background:radial-gradient(120% 75% at 50% 24%,#0
   <button class="btn" id="bright" type="button" aria-pressed="false">Brighter</button>
 </div>
 <div class="ui" id="caption" aria-live="polite"></div>
+<div class="ui" id="zoom"><button class="btn" type="button" data-z="-1" aria-label="Zoom in">+</button><button class="btn" type="button" data-z="1" aria-label="Zoom out">−</button></div>
 <div class="ui" id="nav" hidden>
   <button class="btn" id="bBack" type="button">‹ Back</button>
   <div class="ui" id="strip" hidden></div>
-  <span id="wallBtns" hidden><button class="btn" type="button" data-v="skip">Next session ›</button> <button class="btn" type="button" data-v="-1">‹ Step back</button> <button class="btn" type="button" data-v="1">Walk on ›</button> <button class="btn leave" type="button" data-v="exit">Leave the container · E</button></span>
+  <span id="wallBtns" hidden><button class="btn" type="button" data-v="skip">Next session ›</button> <button class="btn" type="button" data-v="-1">‹ Step back</button> <button class="btn" type="button" data-v="1">Walk on ›</button> <button class="btn leave" type="button" data-v="exit">Leave the container<span class="kb"> · E</span></button></span>
   <button class="btn" id="bNext" type="button">Next bundle ›</button>
 </div>
 <div id="fade" aria-hidden="true"></div>
@@ -641,13 +669,14 @@ function placeLabels() {
 // ───────────── camera rig: guided, with a small drag that springs back ─────────────
 const rig = {tx: 0, ty: 1.2, tz: 0, yaw: 0.0, pitch: 0.5, dist: 15};
 const drag = {yaw: 0, pitch: 0, on: false, x: 0, y: 0};
+let ZOOM = 1, zoomLevel = 0;   // the viewer's own zoom (pinch, +/−, ctrl-wheel); resets when the layer changes
 function fitDist(wUnits, hUnits) {   // distance that shows a w×h area at this aspect
   const tv = Math.tan(THREE.MathUtils.degToRad(camera.fov / 2));
   return Math.max(hUnits / 2 / tv, wUnits / 2 / (tv * camera.aspect));
 }
 function shot(level, b) {
   if (level === 0) return {tx: 0.3, ty: 1.6, tz: 0, yaw: -0.62, pitch: 0.16, dist: fitDist(15, 9.5)};
-  if (level === 1) return {tx: 0, ty: 0, tz: 0.4, yaw: 0.0, pitch: 0.8, dist: fitDist(32, 24)};
+  if (level === 1) return {tx: 0, ty: 0, tz: 0.4, yaw: 0.0, pitch: 0.8, dist: fitDist(camera.aspect < 0.8 ? 27 : 32, 24)};
   if (level === 3) return {...rig};
   return {tx: b.pos[0], ty: 0.9, tz: b.pos[2], yaw: 0.0, pitch: 0.62, dist: fitDist(12, b.d + 3.2)};
 }
@@ -688,7 +717,8 @@ function placeCamera() {
   }
   if (!drag.on) { drag.yaw *= 0.9; drag.pitch *= 0.9; }
   const yaw = rig.yaw + drag.yaw, pitch = Math.min(1.35, Math.max(level >= 2 ? -0.45 : 0.04, rig.pitch + drag.pitch));
-  camera.position.set(rig.tx + rig.dist * Math.cos(pitch) * Math.sin(yaw), rig.ty + rig.dist * Math.sin(pitch), rig.tz + rig.dist * Math.cos(pitch) * Math.cos(yaw));
+  const D = rig.dist * (level < 3 ? ZOOM : 1);
+  camera.position.set(rig.tx + D * Math.cos(pitch) * Math.sin(yaw), rig.ty + D * Math.sin(pitch), rig.tz + D * Math.cos(pitch) * Math.cos(yaw));
   camera.lookAt(rig.tx, rig.ty, rig.tz);
 }
 
@@ -1036,7 +1066,15 @@ function buildRoom(b, j, s, opt = {}) {
 const ST = [{z: ROOM.d / 2 - 1.0, th: 0, name: 'entry'}, {z: 4.0 + 1.5, th: Math.PI / 2 - 0.5, name: 'board'}, {z: 0.4 + 1.5, th: -Math.PI / 2 + 0.5, name: 'board'},
             {z: -3.2 + 1.5, th: Math.PI / 2 - 0.5, name: 'board'}, {z: -ROOM.d / 2 + 4.2, th: 0, name: 'exit'}];
 const FOV_OUT = 38, FOV_IN = 60;
-function setFov(f) { camera.fov = f; camera.updateProjectionMatrix(); }
+let FOV_BASE = FOV_OUT;
+function setFov(f) {   // keep the sideways view a narrow phone sees as wide as a laptop's, inside the containers
+  FOV_BASE = f; let v = f;
+  if (f > FOV_OUT + 1 && camera.aspect < 1.6) {
+    const h = 2 * Math.atan(Math.tan(THREE.MathUtils.degToRad(f / 2)) * 1.6);
+    v = Math.min(100, THREE.MathUtils.radToDeg(2 * Math.atan(Math.tan(h / 2) / camera.aspect)));
+  }
+  camera.fov = v; camera.updateProjectionMatrix();
+}
 function fade(to, dur) { const a = +(FADE.style.opacity || 0); return tween(dur, k => FADE.style.opacity = lerp(a, to, k)); }
 function nearTh(th) { while (th - SES.th > Math.PI) th -= TAU; while (SES.th - th > Math.PI) th += TAU; return th; }
 async function goTo(i, tok) {
@@ -1225,6 +1263,7 @@ function setHover(h) {
 }
 const CAP = document.getElementById('caption');
 const esc = s => s.replace(/&/g, '&amp;').replace(/</g, '&lt;');
+const TOUCH = matchMedia('(hover:none),(pointer:coarse)').matches;
 function caption() {
   let html;
   if (hover && hover.kind === 'bundle') html = `<span class="c" style="--c:${hover.b.col}">Bundle ${hover.b.n}</span> · <b>${esc(hover.b.name)}</b><br>${esc(hover.b.line)}`;
@@ -1244,6 +1283,8 @@ function caption() {
       : tag + '<br><b>Last session of this track</b> · walk on to leave through the exit · or press E';
   }
   else html = `<b>${esc(cur.line)}</b><br>Click any container to step inside that session · drag to look around · scroll out to step back`;
+  if (TOUCH && html) html = html.replace(/scroll out to close the box/g, 'pinch to zoom · tap Gen AI above to close the box')
+    .replace(/scroll out to step back/g, 'pinch to zoom · ‹ Back to step back').replace(/\bClick/g, 'Tap').replace(/\bclick/g, 'tap');
   CAP.innerHTML = html;
   CAP.hidden = level === 3;   // inside a container the session strip and the doorway already say it
 }
@@ -1251,6 +1292,8 @@ function caption() {
 // ───────────── chrome ─────────────
 const CR = document.getElementById('crumbs'), NAV = document.getElementById('nav');
 function ui() {
+  if (zoomLevel !== level) { zoomLevel = level; ZOOM = 1; }
+  document.getElementById('zoom').hidden = level === 3;
   const parts = [['Gen AI — Know how', 0]];
   if (level >= 1) parts.push(['Bundles', 1]);
   if (level >= 2 && cur) parts.push([`Bundle ${cur.n} · ${cur.name}`, 2]);
@@ -1286,7 +1329,18 @@ document.getElementById('bright').onclick = e => {
 };
 
 // ───────────── input ─────────────
+const PTS = new Map(); let pinch = null;
+function zoomBy(f) { if (level < 3) ZOOM = Math.max(0.4, Math.min(1.9, ZOOM * f)); }
+document.querySelectorAll('#zoom .btn').forEach(bt => bt.onclick = () => zoomBy(+bt.dataset.z > 0 ? 1.25 : 0.8));
+function pinchDist() { const [a, b] = [...PTS.values()]; return Math.hypot(a.x - b.x, a.y - b.y); }
 canvas.addEventListener('pointermove', e => {
+  if (PTS.has(e.pointerId)) PTS.set(e.pointerId, {x: e.clientX, y: e.clientY});
+  if (pinch && PTS.size === 2) {   // two fingers: pinch to zoom (inside a container: pinch to walk)
+    const d = pinchDist(), r = d / pinch.d;
+    if (level === 3) { if (!busy && SES && !SES.moving && Math.abs(Math.log(r)) > 0.35) { walk(r > 1 ? 1 : -1); pinch.d = d; } }
+    else { zoomBy(pinch.d / d); pinch.d = d; }
+    return;
+  }
   mouse.set(e.clientX / innerWidth * 2 - 1, -(e.clientY / innerHeight) * 2 + 1);
   if (drag.on && !busy && level === 3 && SES && SES.inside) {   // inside: look around from where you stand
     SES.tour = null;
@@ -1305,9 +1359,16 @@ canvas.addEventListener('pointermove', e => {
     drag.x = e.clientX; drag.y = e.clientY; drag.moved = true;
   }
 });
-canvas.addEventListener('pointerdown', e => { drag.on = true; drag.moved = false; drag.x = e.clientX; drag.y = e.clientY; drag.sx = e.clientX; drag.sy = e.clientY; canvas.setPointerCapture(e.pointerId); });
+canvas.addEventListener('pointerdown', e => {
+  PTS.set(e.pointerId, {x: e.clientX, y: e.clientY});
+  if (PTS.size === 2) { drag.on = false; drag.sx = -1e4; pinch = {d: pinchDist()}; return; }
+  drag.on = true; drag.moved = false; drag.x = e.clientX; drag.y = e.clientY; drag.sx = e.clientX; drag.sy = e.clientY; canvas.setPointerCapture(e.pointerId); });
+const endPt = e => { PTS.delete(e.pointerId); if (PTS.size < 2) pinch = null; };
+canvas.addEventListener('pointercancel', e => { endPt(e); drag.on = false; });
 canvas.addEventListener('pointerup', e => {
+  const multi = PTS.size > 1 || pinch; endPt(e);
   const was = drag.on; drag.on = false;
+  if (multi) { drag.sx = -1e4; return; }
   if (Math.hypot(e.clientX - drag.sx, e.clientY - drag.sy) > 5 || busy) return;
   mouse.set(e.clientX / innerWidth * 2 - 1, -(e.clientY / innerHeight) * 2 + 1);
   const h = pick();
@@ -1321,6 +1382,7 @@ canvas.addEventListener('pointerleave', () => { mouse.set(-9, -9); });
 let wheelAcc = 0;
 canvas.addEventListener('wheel', e => {
   e.preventDefault();
+  if (e.ctrlKey && level < 3) { zoomBy(Math.exp(e.deltaY * 0.01)); return; }   // trackpad pinch
   if (busy) { wheelAcc = 0; return; }
   wheelAcc += e.deltaY;
   if (level === 3) { if (Math.abs(wheelAcc) > 90) { const d = wheelAcc < 0 ? 1 : -1; wheelAcc = 0; walk(d); } return; }
@@ -1348,7 +1410,7 @@ addEventListener('keydown', e => {
 // ───────────── loop ─────────────
 function resize() {
   renderer.setSize(innerWidth, innerHeight, false);
-  camera.aspect = innerWidth / innerHeight; camera.updateProjectionMatrix();
+  camera.aspect = innerWidth / innerHeight; setFov(FOV_BASE);
   if (!busy) Object.assign(rig, shot(level, cur));
 }
 addEventListener('resize', resize);
@@ -1358,11 +1420,11 @@ show(caseLabel, false); ui();
 async function introCase() {
   const tok = SWEEP = {};
   GUIDED = true; caption();   // the seal can be clicked from the first second
-  // rise straight over the lid, turning a quarter on the way, until the seal fills the view
-  const a = {...rig}, b = {tx: 0, ty: CASE.h, tz: 0.3, yaw: rig.yaw - 0.9, pitch: 1.0, dist: fitDist(9, 6.5)};
-  await tween(1.8, k => { if (SWEEP === tok) for (const q in b) rig[q] = lerp(a[q], b[q], k); });
+  // one quick full turn round the box, rising over the lid as it goes, ending with the seal in view
+  const a = {...rig}, b = {tx: 0, ty: CASE.h, tz: 0.3, yaw: rig.yaw - TAU, pitch: 1.0, dist: fitDist(9, 6.5)};
+  await tween(3.6, k => { if (SWEEP === tok) for (const q in b) rig[q] = lerp(a[q], b[q], k); });
   if (SWEEP !== tok) return;
-  SWEEP = null; GUIDED = true; caption();
+  rig.yaw = normYaw(rig.yaw); SWEEP = null; GUIDED = true; caption();
 }
 flyTo(shot(0), 1.3).then(() => { show(caseLabel, true); triLabels.forEach(L => show(L, true)); introCase(); });
 let t0 = performance.now();
