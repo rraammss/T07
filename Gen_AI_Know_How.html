@@ -78,7 +78,11 @@ html,body{height:100%;margin:0;background:radial-gradient(120% 75% at 50% 24%,#0
 .fb-card .l{font:400 13.5px/1.55 var(--sans);color:var(--dim)}
 .fb-card .c{font:400 12px/1 var(--mono);color:var(--dim);letter-spacing:.06em;margin-top:6px}
 .fb-card .go{font:500 12px/1 var(--mono);color:var(--c);letter-spacing:.08em;margin-top:10px}
-.fb-note{font:400 12.5px/1.7 var(--mono);color:var(--dim);max-width:640px;margin:44px auto 0}
+.fb-help{max-width:880px;margin:44px auto 0;text-align:left;font:400 12.5px/1.6 var(--sans);color:var(--dim)}
+.fb-ht,.fb-ht2{font-family:var(--mono);font-size:12px;text-align:center;color:var(--ink)}.fb-ht2{color:var(--dim);margin-top:14px}
+.fb-hg{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:10px;margin-top:14px}
+.fb-hg div{border:.7px solid var(--line);border-radius:8px;padding:12px 14px;background:rgba(10,17,32,.7);min-width:0;overflow-wrap:anywhere}
+.fb-hg b{display:block;color:var(--ink);font-weight:500;margin-bottom:4px}
 @media (prefers-reduced-motion:reduce){.fb-card{transition:none}}
 #nogl[hidden]{display:none}
 #fade{position:fixed;inset:0;background:var(--bg);opacity:0;pointer-events:none;z-index:1}
@@ -134,7 +138,16 @@ html,body{height:100%;margin:0;background:radial-gradient(120% 75% at 50% 24%,#0
     <h1>GEN AI — KNOW HOW</h1>
     <p class="fb-sub">every concept is a point in 1,536 dimensions · let's learn</p>
     <div class="fb-cards" id="fbCards"></div>
-    <p class="fb-note">The 3D map needs graphics acceleration. In Chrome: Settings → System → turn on "Use graphics acceleration when available", then reload this page.</p>
+    <div class="fb-help">
+      <div class="fb-ht">The 3D map needs graphics acceleration. To turn it on:</div>
+      <div class="fb-hg">
+        <div><b>Chrome</b>chrome://settings/system → turn on "Use graphics acceleration when available" → Relaunch</div>
+        <div><b>Brave</b>brave://settings/system → same switch → Relaunch. Still blank? Set Shields to Standard for this site</div>
+        <div><b>Edge</b>edge://settings/system → same switch → Restart</div>
+        <div><b>Firefox</b>Settings → General → Performance → untick "recommended", tick "hardware acceleration" → restart</div>
+      </div>
+      <div class="fb-ht2">Then reload this page. Work laptops sometimes lock this setting; the bundle pages above work either way.</div>
+    </div>
   </div>
 </div>
 

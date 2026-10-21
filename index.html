@@ -143,6 +143,19 @@
     @media (max-width: 950px) { .how { grid-template-columns: 1fr; } }
     @media (max-width: 560px) { .badge { border-radius: 14px; } }
 
+    .gfx { max-width: 1160px; margin: -18px auto 34px; padding: 0 20px; font-size: 13px; color: var(--muted); }
+    .gfx summary { cursor: pointer; width: fit-content; color: var(--navy); font-weight: 650; padding: 6px 0; }
+    .gfx summary:focus-visible { outline: 2px solid var(--blue); outline-offset: 3px; border-radius: 4px; }
+    .gfx-grid { margin-top: 10px; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
+    .gfx-grid > div { background: #ffffff; border: 1px solid var(--line); border-radius: 12px; padding: 14px 16px; min-width: 0; }
+    .gfx-grid b { color: var(--navy); font-size: 14px; }
+    .gfx ol { margin: 8px 0 0; padding-left: 18px; line-height: 1.6; }
+    .gfx code { font-size: 12px; background: #eef1f5; padding: 1px 5px; border-radius: 4px; overflow-wrap: anywhere; }
+    .gfx i { font-style: normal; color: var(--ink); }
+    .gfx-note { margin: 12px 0 0; line-height: 1.6; }
+    @media (max-width: 950px) { .gfx-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+    @media (max-width: 560px) { .gfx-grid { grid-template-columns: 1fr; } }
+
     /* two ways in: the 3D map, or the course pages */
     .ways-h {
       max-width: 1160px; margin: 14px auto 14px; padding: 0 20px;
@@ -286,6 +299,17 @@
       </a>
     </section>
 
+
+    <details class="gfx">
+      <summary>3D map not opening? Turn on graphics acceleration</summary>
+      <div class="gfx-grid">
+        <div><b>Chrome</b><ol><li>Open <code>chrome://settings/system</code></li><li>Turn on <i>Use graphics acceleration when available</i></li><li>Click <i>Relaunch</i></li></ol></div>
+        <div><b>Brave</b><ol><li>Open <code>brave://settings/system</code></li><li>Turn on <i>Use graphics acceleration when available</i></li><li>Click <i>Relaunch</i></li><li>Still blank? Click the Brave lion icon and set Shields to <i>Standard</i> for this site</li></ol></div>
+        <div><b>Edge</b><ol><li>Open <code>edge://settings/system</code></li><li>Turn on <i>Use graphics acceleration when available</i></li><li>Click <i>Restart</i></li></ol></div>
+        <div><b>Firefox</b><ol><li>Settings → General → Performance</li><li>Untick <i>Use recommended performance settings</i></li><li>Tick <i>Use hardware acceleration when available</i>, then restart</li></ol></div>
+      </div>
+      <p class="gfx-note">Safari has it on already. To check any Chromium browser, open <code>chrome://gpu</code> (or <code>brave://gpu</code>): <i>WebGL</i> should say <i>Hardware accelerated</i>. Work laptops sometimes lock this setting; if so, use the course pages.</p>
+    </details>
 
     <section class="grid" id="bundles">
 
