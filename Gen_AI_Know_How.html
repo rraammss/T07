@@ -1027,9 +1027,14 @@ function buildRoom(b, j, s, opt = {}) {
   }
   // the outside of the container, seen before you walk in
   const shell = new THREE.Mesh(new THREE.BoxGeometry(w + 0.14, h + 0.14, d + 0.06), new THREE.MeshStandardMaterial({color: 0x0c1528, roughness: 0.85}));
-  shell.position.y = h / 2; shell.geometry.groups = shell.geometry.groups.filter((gr, i) => i !== 4 && !(i === 5 && back === 'link')); g.add(shell);
+  const none = new THREE.MeshBasicMaterial({visible: false});   // the door end is open (and the back too, where a gangway joins)
+  shell.material = [0, 1, 2, 3, 4, 5].map(i => i === 4 || (i === 5 && back === 'link') ? none : shell.material);
+  shell.position.y = h / 2; g.add(shell);
+  // a bright outline on the outside edges, so the container reads clearly against the night
+  const outline = new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.BoxGeometry(w + 0.15, h + 0.15, d + 0.07)), new THREE.LineBasicMaterial({color: col.clone().offsetHSL(0, 0.05, 0.12)}));
+  outline.position.y = h / 2; g.add(outline);
   const R = []; for (let z = -d / 2 + 0.3; z < d / 2; z += 0.32) R.push(-w / 2 - 0.08, 0.05, z, -w / 2 - 0.08, h - 0.05, z, w / 2 + 0.08, 0.05, z, w / 2 + 0.08, h - 0.05, z);
-  lines(R, col, 0.28);                                            // outside ribs
+  lines(R, col, 0.5);                                             // outside ribs, a little brighter
   const I = []; for (let z = -d / 2 + 0.25; z < d / 2; z += 0.3) I.push(-w / 2 + 0.01, 0, z, -w / 2 + 0.01, h, z, w / 2 - 0.01, 0, z, w / 2 - 0.01, h, z);
   lines(I, col, 0.22);                                            // inside ribs
   const F = []; for (let x = -w / 2 + 0.45; x < w / 2; x += 0.45) F.push(x, 0.005, -d / 2, x, 0.005, d / 2);
@@ -1042,7 +1047,7 @@ function buildRoom(b, j, s, opt = {}) {
     const piv = new THREE.Group(); piv.position.set(0, (i + 1) * sh, d / 2 + 0.05); g.add(piv);   // each slat hinges on its top edge
     const m = new THREE.Mesh(new THREE.BoxGeometry(w, sh * 0.94, 0.05), new THREE.MeshStandardMaterial({color: 0x0d172b, roughness: 0.7, emissive: col, emissiveIntensity: 0, transparent: true}));
     m.position.y = -sh / 2; piv.add(m);
-    const e = new THREE.LineSegments(new THREE.EdgesGeometry(m.geometry), new THREE.LineBasicMaterial({color: col, transparent: true, opacity: 0.5})); e.position.y = -sh / 2; piv.add(e);
+    const e = new THREE.LineSegments(new THREE.EdgesGeometry(m.geometry), new THREE.LineBasicMaterial({color: col, transparent: true, opacity: 0.85})); e.position.y = -sh / 2; piv.add(e);
     slats.push({piv, m, e});
   }
   const doorGlow = new THREE.PointLight(col, 0, 14); doorGlow.position.set(0, h / 2, d / 2 - 1.5); g.add(doorGlow);
@@ -1213,10 +1218,10 @@ async function openSession(b, j, s) {
   await flyTo({tx: RP.x, ty: 1.7, tz: RP.z + ROOM.d / 2, yaw: 0, pitch: 0.08, dist: Math.max(9, fitDist(ROOM.w * 1.5, ROOM.h * 1.7))}, 3.2);
   // the door: a line of light climbs the slats, then they fold open one by one, bottom first
   const NS = SES.slats.length;
-  await tween(0.5, k => SES.slats.forEach((sl, i) => { sl.m.material.emissiveIntensity = 0.55 * Math.max(0, Math.min(1, k * NS - i)); }));
-  await Promise.all(SES.slats.map((sl, i) => wait(i * 0.035).then(() => tween(0.55, k => {
+  await tween(0.9, k => SES.slats.forEach((sl, i) => { sl.m.material.emissiveIntensity = 0.55 * Math.max(0, Math.min(1, k * NS - i)); }));
+  await Promise.all(SES.slats.map((sl, i) => wait(i * 0.08).then(() => tween(0.9, k => {
     sl.piv.rotation.x = -Math.PI / 2 * k; sl.piv.position.y = (i + 1) * (ROOM.h / NS) + (ROOM.h - (i + 1) * (ROOM.h / NS)) * k * 0.9;
-    sl.m.material.opacity = 1 - k; sl.e.material.opacity = 0.5 * (1 - k); SES.doorGlow.intensity = 1.2 * Math.max(SES.doorGlow.intensity / 1.2, k); }))));
+    sl.m.material.opacity = 1 - k; sl.e.material.opacity = 0.85 * (1 - k); SES.doorGlow.intensity = 1.2 * Math.max(SES.doorGlow.intensity / 1.2, k); }))));
   SES.slats.forEach(sl => sl.piv.visible = false);
   // walk through the doorway to the first spot
   await Promise.all([flyTo({tx: RP.x, ty: 1.6, tz: RP.z + ST[0].z - 3, yaw: 0, pitch: 0, dist: 3}, 1.6), tween(1.6, k => setFov(lerp(FOV_OUT, FOV_IN, k)))]);
@@ -1233,7 +1238,7 @@ async function exitSession(throughBack) {
     if (throughBack && SES.inside) {   // turn to the exit, the door swings open onto light, walk through
       const a = SES.th, t = nearTh(0), p = SES.ph;
       await tween(0.5, k => { SES.th = lerp(a, t, k); SES.ph = lerp(p, 0, k); });
-      await tween(0.8, k => { SES.exitPivot.userData.halves.forEach((m, i) => m.position.x = (i ? 1 : -1) * (HW / 4 - 0.02 + (HW / 2) * k)); SES.exitLight.material.opacity = 0.85 * k; });
+      await tween(1.3, k => { SES.exitPivot.userData.halves.forEach((m, i) => m.position.x = (i ? 1 : -1) * (HW / 4 - 0.02 + (HW / 2) * k)); SES.exitLight.material.opacity = 0.85 * k; });
       const z0 = SES.C.z;
       await Promise.all([tween(1.4, k => { SES.C.z = lerp(z0, RP.z - ROOM.d / 2 + 0.4, k); }), wait(0.8).then(() => fade(1, 0.5))]);
     } else await fade(1, 0.45);
