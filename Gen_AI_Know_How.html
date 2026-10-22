@@ -736,6 +736,9 @@ function placeCamera() {
   if (level === 3 && SES && SES.orbit) rig.dist = SES.distFor(rig.yaw);
   if (level === 3 && SES && SES.inside) {
     const c = SES.C, th = SES.th, ph = SES.ph;
+    SES.rooms.forEach(r => { const hc = r.g.userData.hatch; if (!hc) return;
+      const k = Math.max(0, Math.min(1, (c.z - (r.g.position.z + r.g.userData.hatchZ) - 0.8) / 2.6));
+      hc.material.opacity = k; hc.visible = k > 0.01; });
     camera.position.copy(c);
     camera.lookAt(c.x - Math.sin(th) * Math.cos(ph), c.y + Math.sin(ph), c.z - Math.cos(th) * Math.cos(ph));
     return;
@@ -753,7 +756,7 @@ let SEAL_HOT = false, GUIDED = false, hoverLost = 0;
 const BEACON_RED = new THREE.Color('#ff3328').convertSRGBToLinear();
 
 async function openCase() {
-  busy = true; GUIDED = false; SEAL_HOT = false; show(caseLabel, false); triLabels.forEach(L => show(L, false));
+  busy = true; GUIDED = false; SEAL_HOT = false; show(caseLabel, false); triLabels.forEach(L => show(L, false)); showUnlock(false);
   // stop the intro turn wherever it is and rise to a view that keeps the opening lid on screen
   flyTo({tx: 0, ty: CASE.h * 1.6, tz: -0.8, yaw: normYaw(rig.yaw), pitch: 0.9, dist: fitDist(11.5, 14.8)}, 0.7);
   CAP.innerHTML = '<b>Opening the box…</b>';
@@ -793,6 +796,13 @@ async function openCase() {
   level = 1; busy = false; ui();
   orbitBundles();
 }
+// a bobbing "unlock here" tag above the seal while the box waits to be opened
+let UNLOCK = null;
+function showUnlock(on) {
+  if (!UNLOCK) UNLOCK = label('hint', `<div class="hb"><span class="k">${TOUCH ? 'TAP' : 'CLICK'}</span>Unlock here</div>`,
+    () => SEALP.clone().add(new THREE.Vector3(0, 0.5, 0)), 'above', '--c:#ffd98a');
+  show(UNLOCK, on);
+}
 async function closeCase() {
   BUNDLES.forEach(o => xray(o, 0));
   busy = true; BUNDLES.forEach(b => show(b.label, false));
@@ -812,7 +822,7 @@ async function closeCase() {
   seal.visible = true; seal.scale.setScalar(1); seal.rotation.y = 0; sealMats.forEach(m => m.opacity = 0.95); sealGlow.material.opacity = 0.2;
   wand.visible = true; wand.position.copy(WAND_REST); wand.rotation.z = WAND_TILT; tipGlow.scale.set(0.5, 0.5, 1);
   await tween(0.5, k => wandMats.forEach(m => m.opacity = k));
-  show(caseLabel, true); triLabels.forEach(L => show(L, true));
+  show(caseLabel, true); triLabels.forEach(L => show(L, true)); showUnlock(true);
   level = 0; busy = false; GUIDED = true; ui();
 }
 function dimOthers(b, k) {   // k: 0 = all normal, 1 = others faded
@@ -1024,6 +1034,9 @@ function buildRoom(b, j, s, opt = {}) {
     const dt = new THREE.CanvasTexture(dc); dt.encoding = THREE.sRGBEncoding;
     const inDoor = new THREE.Mesh(new THREE.PlaneGeometry(HW - 0.1, (HW - 0.1) * 1400 / 1024), new THREE.MeshBasicMaterial({map: dt, transparent: true, toneMapped: false, depthWrite: false}));
     inDoor.position.set(0, HH / 2 + 0.05, -d / 2 - GAP * 0.5); g.add(inDoor);
+    // a dark card behind the sign, so the hatch shows the next session's name, not a view into its corridor; it fades as you walk up to it
+    const hatch = new THREE.Mesh(new THREE.PlaneGeometry(HW, HH), new THREE.MeshBasicMaterial({color: new THREE.Color(0x070c18).convertSRGBToLinear(), transparent: true, side: THREE.DoubleSide}));
+    hatch.position.set(0, HH / 2, -d / 2 - GAP * 0.5 - 0.03); g.add(hatch); g.userData.hatch = hatch; g.userData.hatchZ = -d / 2 - GAP * 0.5 - 0.03;
   }
   // the outside of the container, seen before you walk in
   const shell = new THREE.Mesh(new THREE.BoxGeometry(w + 0.14, h + 0.14, d + 0.06), new THREE.MeshStandardMaterial({color: 0x0c1528, roughness: 0.85}));
@@ -1045,11 +1058,15 @@ function buildRoom(b, j, s, opt = {}) {
   const NS = front === 'door' ? 12 : 0, sh = h / 12, slats = [];
   for (let i = 0; i < NS; i++) {
     const piv = new THREE.Group(); piv.position.set(0, (i + 1) * sh, d / 2 + 0.05); g.add(piv);   // each slat hinges on its top edge
-    const m = new THREE.Mesh(new THREE.BoxGeometry(w, sh * 0.94, 0.05), new THREE.MeshStandardMaterial({color: 0x0d172b, roughness: 0.7, emissive: col, emissiveIntensity: 0, transparent: true}));
+    const m = new THREE.Mesh(new THREE.BoxGeometry(w, sh * 1.01, 0.05), new THREE.MeshBasicMaterial({color: new THREE.Color(0x111c33).convertSRGBToLinear(), transparent: true}));
     m.position.y = -sh / 2; piv.add(m);
     const e = new THREE.LineSegments(new THREE.EdgesGeometry(m.geometry), new THREE.LineBasicMaterial({color: col, transparent: true, opacity: 0.85})); e.position.y = -sh / 2; piv.add(e);
     slats.push({piv, m, e});
   }
+  // a dark backing board behind the shutter: nothing inside shows until the door actually opens
+  let backing = null;
+  if (NS) { backing = new THREE.Mesh(new THREE.PlaneGeometry(w, h), new THREE.MeshBasicMaterial({color: new THREE.Color(0x0a1222).convertSRGBToLinear()}));
+    backing.position.set(0, h / 2, d / 2 + 0.015); g.add(backing); }
   const doorGlow = new THREE.PointLight(col, 0, 14); doorGlow.position.set(0, h / 2, d / 2 - 1.5); g.add(doorGlow);
   // the exit at the far end (last coach only)
   const exitGroup = new THREE.Group(); exitGroup.visible = back === 'exit'; g.add(exitGroup);
@@ -1098,7 +1115,7 @@ function buildRoom(b, j, s, opt = {}) {
     m.rotation.set(-Math.PI / 2, 0, -side * Math.PI / 2); m.position.set(side * 0.85, 0.012, z); m.scale.setScalar(0.38); g.add(m); arrows.push(m);
   });
   const pl = new THREE.PointLight(0xfff0d8, 0.5, 18); pl.position.set(0, h - 0.3, 0); g.add(pl);
-  return {g, slats, doorGlow, exitPivot, exitLight, boards, arrows, markers, handsOn, s};
+  return {g, slats, backing, doorGlow, exitPivot, exitLight, boards, arrows, markers, handsOn, s};
 }
 // where you stand inside: the door, each board, the exit
 const ST = [{z: ROOM.d / 2 - 1.0, th: 0, name: 'entry'}, {z: 4.0 + 1.5, th: Math.PI / 2 - 0.5, name: 'board'}, {z: 0.4 + 1.5, th: -Math.PI / 2 + 0.5, name: 'board'},
@@ -1156,7 +1173,7 @@ function buildTrain(b, j, s) {   // this session's coach, plus up to two coaches
     rooms.push(buildRoom(b, j, s + k, {front: k === 0 ? 'door' : 'link', back: s + k < SESSIONS - 1 ? 'link' : 'exit', zoff: -k * COACH()}));
   return rooms;
 }
-function disposeRoom(r) { scene.remove(r.g); r.g.traverse(o => { if (o.material) { if (o.material.map && o.material.map !== dotTex) o.material.map.dispose(); o.material.dispose(); } if (o.geometry) o.geometry.dispose(); }); }
+function disposeRoom(r) { scene.remove(r.g); r.g.traverse(o => { if (o.material) [].concat(o.material).forEach(mt => { if (mt.map && mt.map !== dotTex) mt.map.dispose(); mt.dispose(); }); if (o.geometry) o.geometry.dispose(); }); }
 async function skipToDoor() {   // straight to the connecting hatch; from there, into the next session
   if (!SES || !SES.inside || busy) return;
   SES.tour = null;
@@ -1178,7 +1195,7 @@ async function jumpTo(n) {   // any session, in about a second: rush down the tr
   SES.rooms.forEach(disposeRoom);
   SES.blk.material.emissiveIntensity = 0.45; SES.s = n; SES.blk = SES.b.rows[SES.j].userData.blocks[n]; SES.blk.material.emissiveIntensity = 1.8;
   SES.rooms = buildTrain(SES.b, SES.j, n); Object.assign(SES, SES.rooms[0]);
-  SES.slats.forEach(sl => sl.piv.visible = false);
+  SES.slats.forEach(sl => sl.piv.visible = false); if (SES.backing) SES.backing.visible = false;
   SES.C.z = RP.z + ST[0].z; SES.th = 0; SES.ph = 0; SES.at = 0; setFov(FOV_IN); ui();
   await fade(0, 0.3);
   SES.moving = false; busy = false; ui();
@@ -1218,11 +1235,18 @@ async function openSession(b, j, s) {
   await flyTo({tx: RP.x, ty: 1.7, tz: RP.z + ROOM.d / 2, yaw: 0, pitch: 0.08, dist: Math.max(9, fitDist(ROOM.w * 1.5, ROOM.h * 1.7))}, 3.2);
   // the door: a line of light climbs the slats, then they fold open one by one, bottom first
   const NS = SES.slats.length;
-  await tween(0.9, k => SES.slats.forEach((sl, i) => { sl.m.material.emissiveIntensity = 0.55 * Math.max(0, Math.min(1, k * NS - i)); }));
+  // the light climbs the seams only (no washed-out slats), then each slat folds up, bottom first, solid until it is lying flat up top
+  const seamCol = new THREE.Color(SES.b.col).offsetHSL(0, 0, 0.15);
+  await tween(0.9, k => SES.slats.forEach((sl, i) => { const q = Math.max(0, Math.min(1, k * NS - i));
+    sl.e.material.color.copy(new THREE.Color(SES.b.col)).lerp(seamCol, q); sl.e.material.opacity = 0.85 + 0.15 * q; }));
+  const prog = new Array(NS).fill(0), BK = SES.backing;
   await Promise.all(SES.slats.map((sl, i) => wait(i * 0.08).then(() => tween(0.9, k => {
     sl.piv.rotation.x = -Math.PI / 2 * k; sl.piv.position.y = (i + 1) * (ROOM.h / NS) + (ROOM.h - (i + 1) * (ROOM.h / NS)) * k * 0.9;
-    sl.m.material.opacity = 1 - k; sl.e.material.opacity = 0.85 * (1 - k); SES.doorGlow.intensity = 1.2 * Math.max(SES.doorGlow.intensity / 1.2, k); }))));
-  SES.slats.forEach(sl => sl.piv.visible = false);
+    const f = k < 0.65 ? 1 : 1 - (k - 0.65) / 0.35; sl.m.material.opacity = f; sl.e.material.opacity = f;
+    prog[i] = k; if (BK) { const open = Math.min(1, prog.reduce((a, v) => a + v, 0) / NS * 1.05);   // the backing shrinks upward as the door opens
+      BK.scale.y = Math.max(0.001, 1 - open); BK.position.y = ROOM.h - ROOM.h * BK.scale.y / 2; }
+    SES.doorGlow.intensity = 1.2 * Math.max(SES.doorGlow.intensity / 1.2, k); }))));
+  SES.slats.forEach(sl => sl.piv.visible = false); if (BK) BK.visible = false;
   // walk through the doorway to the first spot
   await Promise.all([flyTo({tx: RP.x, ty: 1.6, tz: RP.z + ST[0].z - 3, yaw: 0, pitch: 0, dist: 3}, 1.6), tween(1.6, k => setFov(lerp(FOV_OUT, FOV_IN, k)))]);
   tween(1.5, k => { SES.doorGlow.intensity = 1.2 * (1 - k); });
@@ -1466,7 +1490,7 @@ async function introCase() {
   if (SWEEP !== tok) return;
   rig.yaw = normYaw(rig.yaw); SWEEP = null; GUIDED = true; caption();
 }
-flyTo(shot(0), 1.3).then(() => { show(caseLabel, true); triLabels.forEach(L => show(L, true)); introCase(); });
+flyTo(shot(0), 1.3).then(() => { show(caseLabel, true); triLabels.forEach(L => show(L, true)); showUnlock(level === 0); introCase(); });
 let t0 = performance.now();
 function frame(now) {
   stepTweens(now);
