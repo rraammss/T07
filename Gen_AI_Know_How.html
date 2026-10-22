@@ -475,7 +475,8 @@ const wandMats = [stick.material, tip.material, tipGlow.material];
 
 // ───────────── the bundles (layer 1) and their tracks (layer 2) ─────────────
 const BOX = {w: 7.4, h: 1.7};
-const TRAY = 0.22;   // inside a bundle, the box flattens to this share of its height: a platform, not an empty room
+const TRAY = 0.22;
+const SLIM = Math.min(innerWidth, innerHeight) < 600;   // phones: slimmer containers so the track names get the room   // inside a bundle, the box flattens to this share of its height: a platform, not an empty room
 BUNDLES.forEach((b, i) => {
   const PITCH = 0.78;
   const d = Math.max(b.tracks.length, b.tbd ? 7 : 0) * PITCH + 1.1;   // the TBD box is as deep as the others
@@ -513,7 +514,8 @@ BUNDLES.forEach((b, i) => {
     for (let s = 0; s < SESSIONS; s++) {
       const bc = new THREE.Color(b.col), col = (s + j) % 2 ? bc.clone().offsetHSL(0, 0.08, -0.24) : bc.clone().offsetHSL(0, 0.04, -0.1);   // the bundle's own colour, light and deep
       const m = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.2, 0.3), new THREE.MeshStandardMaterial({color: col.clone().multiplyScalar(0.45), roughness: 0.9, emissive: col, emissiveIntensity: 0.45, transparent: true}));
-      m.position.set(0.4 + s * 0.56, 0.14, 0); r.add(m); blocks.push(m);   // containers on the right, the name gets the left
+      if (SLIM) { m.scale.x = 0.62; m.position.set(1.12 + s * 0.4, 0.14, 0); } else m.position.set(0.4 + s * 0.56, 0.14, 0);
+      r.add(m); blocks.push(m);   // containers on the right, the name gets the left
       const rib = [];
       for (let k = -3; k <= 3; k++) { const x = k * 0.062; rib.push(x, -0.1, 0.151, x, 0.1, 0.151, x, -0.1, -0.151, x, 0.1, -0.151); }
       rib.push(0.251, -0.1, 0, 0.251, 0.1, 0);                     // door seam
@@ -656,8 +658,9 @@ BUNDLES.forEach(b => {
 function labelFit(b, r, j, L) {
   (b.trackGroup = b.trackGroup || []).push(L); L.group = b.trackGroup;
   L.chars = (j + 1 + '  ' + b.tracks[j][0]).length;
+  L.word = Math.max(...b.tracks[j][0].split(/\s+/).map(w => w.length)) + 3;   // longest word + the number
   L.fitTo = () => [new THREE.Vector3(b.root.position.x - (BOX.w - 1.6) / 2 + 0.18, b.root.position.y + r.position.y, b.root.position.z + r.position.z),
-                   new THREE.Vector3(b.root.position.x + 0.05, b.root.position.y + r.position.y, b.root.position.z + r.position.z)];
+                   new THREE.Vector3(b.root.position.x + (SLIM ? 0.9 : 0.05), b.root.position.y + r.position.y, b.root.position.z + r.position.z)];
   return L;
 }
 function show(L, on) { L.on = on; L.el.classList.toggle('on', on); }
@@ -674,9 +677,15 @@ function placeLabels() {
     const away = L.el.classList.contains('track') && (Math.abs(normYaw(rig.yaw)) > 0.6 || rig.pitch < 0.28);
     if (L.fitTo && !away) {   // as large as the row allows: from the slab's left edge to the first container, up to 18px
       const [a, b2] = L.fitTo().map(p => p.project(camera)), room = Math.abs(b2.x - a.x) / 2 * W;
-      L.fit = Math.max(10, Math.min(19, room / (L.chars * 0.6)));
-      const fs = Math.min(...L.group.map(o => o.fit || 99));
-      if (Math.abs((L.fs || 0) - fs) > 0.3) { L.fs = fs; L.el.style.fontSize = fs.toFixed(1) + 'px'; L.el.querySelector('b').style.fontSize = fs.toFixed(1) + 'px'; }
+      // one line when the names fit at a readable size; otherwise long names wrap onto two lines (narrow phones)
+      L.fit = Math.min(19, room / (L.chars * 0.6)); L.fitW = Math.min(16, room / (L.word * 0.62));
+      const one = Math.min(...L.group.map(o => o.fit || 99)), wrap = false;
+      const fs = Math.max(10, wrap ? Math.min(...L.group.map(o => o.fitW || 99)) : one);
+      if (Math.abs((L.fs || 0) - fs) > 0.3 || L.wrap !== wrap) {
+        L.fs = fs; L.wrap = wrap; L.el.style.fontSize = fs.toFixed(1) + 'px'; L.el.querySelector('b').style.fontSize = fs.toFixed(1) + 'px';
+        L.el.style.whiteSpace = wrap ? 'normal' : ''; L.el.style.lineHeight = wrap ? '1.08' : '';
+      }
+      if (wrap) L.el.style.width = Math.max(40, room - 4).toFixed(0) + 'px'; else if (L.el.style.width) L.el.style.width = '';
     }
     L.el.style.visibility = V.z > 1 || away ? 'hidden' : 'visible';
   });
@@ -694,7 +703,7 @@ function shot(level, b) {
   if (level === 0) return {tx: 0.3, ty: 1.6, tz: 0, yaw: -0.62, pitch: 0.16, dist: fitDist(15, 9.5)};
   if (level === 1) return {tx: 0, ty: 0, tz: 0.6, yaw: 0.0, pitch: 0.86, dist: fitDist(camera.aspect < 0.8 ? 28 : 33, 30)};
   if (level === 3) return {...rig};
-  return {tx: b.pos[0], ty: 0.9, tz: b.pos[2], yaw: 0.0, pitch: 0.62, dist: fitDist(12, b.d + 3.2)};
+  return {tx: b.pos[0], ty: 0.9, tz: b.pos[2], yaw: 0.0, pitch: 0.62, dist: fitDist(camera.aspect < 0.8 ? 8.4 : 12, b.d + 3.2)};   // phones: the tray fills the width
 }
 const TAU = Math.PI * 2;
 const normYaw = y => ((y + Math.PI) % TAU + TAU) % TAU - Math.PI;
