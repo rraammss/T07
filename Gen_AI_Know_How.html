@@ -962,17 +962,21 @@ function titleTex(eyebrow, col, title) {   // the hanging sign: number and track
   return t;
 }
 const GAP = 1.3, HW = 1.7, HH = 2.5;
-function hatchPlate(colCss, ghost, glow = 1) {   // a rounded pressure-hatch frame: thin outer line, thin inner line, corner brackets
+function hatchPlate(colCss, ghost, glow = 1) {   // a doorway frame: rounded at the top, standing square on the floor with a lit sill
   const c = document.createElement('canvas'), W = 560, H = 760; c.width = W; c.height = H; const g = c.getContext('2d');
-  const ox = (W - 340) / 2, oy = (H - 500) / 2;   // the opening is 340 x 500 px = HW x HH
-  const rr = (x, y, w, h, r) => { g.beginPath(); g.moveTo(x + r, y); g.arcTo(x + w, y, x + w, y + h, r); g.arcTo(x + w, y + h, x, y + h, r); g.arcTo(x, y + h, x, y, r); g.arcTo(x, y, x + w, y, r); g.closePath(); };
-  g.strokeStyle = colCss; g.shadowColor = colCss;
-  g.shadowBlur = 26 * glow; g.lineWidth = 5; rr(ox - 10, oy - 10, 360, 520, 46); g.stroke();
-  g.shadowBlur = 8 * glow; g.lineWidth = 2; g.globalAlpha = 0.6; rr(ox - 34, oy - 34, 408, 568, 64); g.stroke(); g.globalAlpha = 1;
+  const ox = (W - 340) / 2, oy = (H - 500) / 2, fy = oy + 500;   // the opening is 340 x 500 px = HW x HH; fy is the floor line
+  const arch = (x, y, w, r) => { g.beginPath(); g.moveTo(x, fy); g.lineTo(x, y + r); g.arcTo(x, y, x + r, y, r); g.lineTo(x + w - r, y); g.arcTo(x + w, y, x + w, y + r, r); g.lineTo(x + w, fy); };
+  g.strokeStyle = colCss; g.shadowColor = colCss; g.lineCap = 'round';
+  g.shadowBlur = 26 * glow; g.lineWidth = 5; arch(ox - 10, oy - 10, 360, 46); g.stroke();
+  g.shadowBlur = 8 * glow; g.lineWidth = 2; g.globalAlpha = 0.6; arch(ox - 34, oy - 34, 408, 64); g.stroke(); g.globalAlpha = 1;
   g.lineWidth = 4; g.shadowBlur = 14 * glow;
-  [[ox - 34, oy - 34, 1, 1], [ox + 374, oy - 34, -1, 1], [ox - 34, oy + 534, 1, -1], [ox + 374, oy + 534, -1, -1]].forEach(([x, y, sx, sy]) => {
-    g.beginPath(); g.moveTo(x + sx * 70, y); g.lineTo(x + sx * 18, y); g.quadraticCurveTo(x, y, x, y + sy * 18); g.lineTo(x, y + sy * 70); g.stroke(); });
-  if (ghost) { g.globalCompositeOperation = 'destination-out'; rr(ox - 6, oy - 6, 352, 512, 42); g.fill(); }
+  [[ox - 34, 1], [ox + 374, -1]].forEach(([x, sx]) => {   // top corner brackets
+    const y = oy - 34; g.beginPath(); g.moveTo(x + sx * 70, y); g.lineTo(x + sx * 18, y); g.quadraticCurveTo(x, y, x, y + 18); g.lineTo(x, y + 70); g.stroke(); });
+  [ox - 34, ox + 374].forEach(x => { g.beginPath(); g.moveTo(x, fy); g.lineTo(x, fy - 70); g.stroke(); });   // feet
+  g.lineWidth = 6; g.shadowBlur = 18 * glow; g.beginPath(); g.moveTo(ox - 40, fy - 3); g.lineTo(ox + 380, fy - 3); g.stroke();   // the sill
+  if (ghost) { g.globalCompositeOperation = 'destination-out'; g.beginPath(); const x = ox - 6, y = oy - 6, w = 352, r = 42;
+    g.moveTo(x, fy - 7); g.lineTo(x, y + r); g.arcTo(x, y, x + r, y, r); g.lineTo(x + w - r, y); g.arcTo(x + w, y, x + w, y + r, r); g.lineTo(x + w, fy - 7); g.closePath(); g.fill(); }
+  g.globalCompositeOperation = 'destination-out'; g.fillRect(0, fy, W, H - fy);   // nothing below the floor
   const t = new THREE.CanvasTexture(c); t.encoding = THREE.sRGBEncoding;
   const m = new THREE.Mesh(new THREE.PlaneGeometry(HW * W / 340, HH * H / 500), new THREE.MeshBasicMaterial({map: t, transparent: true, depthWrite: false, toneMapped: false, side: THREE.DoubleSide}));
   return m;
