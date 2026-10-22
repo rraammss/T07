@@ -1,7 +1,7 @@
 <!doctype html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <style>[hidden]{display:none!important}</style>
-<title>Gen SI Know-How</title>
+<title>Gen SI Course Agenda</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -57,6 +57,8 @@ html,body{height:100%;margin:0;background:radial-gradient(120% 75% at 50% 24%,#0
 #classic{pointer-events:auto;font-size:11.5px;letter-spacing:.06em;color:var(--dim);text-decoration:none;border:.8px solid var(--line);border-radius:8px;padding:7px 10px;background:var(--panel)}
 #classic:hover,#classic:focus-visible{color:var(--ink);border-color:#3e4d6b;outline:none}
 #brand{font-size:11px;letter-spacing:.2em;color:var(--dim)}
+#agenda{flex:none;font-size:10.5px;font-weight:600;letter-spacing:.18em;color:#1a1204;background:#ffd98a;border-radius:999px;padding:5px 11px;box-shadow:0 0 14px rgba(255,217,138,.45)}   /* always says what this is: the agenda, not the course itself */
+@media (max-width:1180px){#brand{display:none}}
 #crumbs{display:flex;gap:8px;align-items:center;font-size:12px;letter-spacing:.04em;pointer-events:auto;min-width:0;flex-wrap:wrap}
 #crumbs button{all:unset;cursor:pointer;color:var(--dim);padding:2px 0}
 #crumbs button:hover,#crumbs button:focus-visible{color:var(--ink);outline:none}
@@ -135,6 +137,7 @@ html,body{height:100%;margin:0;background:radial-gradient(120% 75% at 50% 24%,#0
 @media (max-width:640px),(max-height:520px){
   #top{flex-wrap:nowrap;gap:10px;padding-top:calc(10px + env(safe-area-inset-top,0px));background:linear-gradient(#060a14 55%,rgba(6,10,20,0))}
   #brand{display:none}
+  #agenda{font-size:0;padding:5px 9px}#agenda::before{content:"AGENDA";font-size:9.5px;letter-spacing:.14em}
   #classic{font-size:0;padding:7px 10px;flex:none}#classic::before{content:"← Classic";font-size:11px}
   #crumbs{flex:1;flex-wrap:nowrap;overflow:hidden;font-size:11px;gap:6px}
   #crumbs>*{flex:none}
@@ -162,10 +165,11 @@ html,body{height:100%;margin:0;background:radial-gradient(120% 75% at 50% 24%,#0
 </style>
 
 </head><body>
-<canvas id="gl" aria-label="Three-dimensional course map"></canvas>
+<canvas id="gl" aria-label="Three-dimensional course agenda"></canvas>
 <div id="labels"></div>
 <div class="ui" id="top">
   <a id="classic" href="https://rraammss.github.io/T07/">← Classic view</a>
+  <span id="agenda">COURSE AGENDA</span>
   <span id="brand">BIGOHACADEMY · T07</span>
   <nav id="crumbs" aria-label="Where you are"></nav>
   <button class="btn" id="bright" type="button" aria-pressed="false">Brighter</button>
@@ -183,7 +187,7 @@ html,body{height:100%;margin:0;background:radial-gradient(120% 75% at 50% 24%,#0
   <div class="fb">
     <div class="fb-ey">BIGOHACADEMY · T07</div>
     <h1>GEN SI — KNOW HOW</h1>
-    <p class="fb-sub">every concept is a point in 1,536 dimensions · let's learn</p>
+    <p class="fb-sub">every concept is a point in 1536 dimensions · let's learn</p>
     <div class="fb-cards" id="fbCards"></div>
     <div class="fb-help">
       <div class="fb-ht">The 3D map needs graphics acceleration. To turn it on:</div>
@@ -433,7 +437,7 @@ const frontName = (() => {
   g.fillStyle = '#fff1d2'; g.font = '500 150px "JetBrains Mono", ui-monospace, monospace'; g.letterSpacing = '22px';
   g.fillText('GEN SI — KNOW HOW', 1024, 330);
   g.shadowBlur = 10; g.letterSpacing = '3px'; g.fillStyle = '#d9c9a6'; g.font = '400 46px "JetBrains Mono", ui-monospace, monospace';
-  g.fillText("every concept is a point in 1,536 dimensions · let's learn", 1024, 470, 1900);
+  g.fillText("every concept is a point in 1536 dimensions · let's learn", 1024, 470, 1900);
   const t = new THREE.CanvasTexture(c); t.encoding = THREE.sRGBEncoding; t.anisotropy = renderer.capabilities.getMaxAnisotropy();
   const m = new THREE.Mesh(new THREE.PlaneGeometry(CASE.w * 0.94, CASE.w * 0.94 * 720 / 2048), new THREE.MeshBasicMaterial({map: t, transparent: true, toneMapped: false, depthWrite: false}));
   m.position.set(0, CASE.h * 0.5, CASE.d / 2 + 0.015); m.renderOrder = 5; caseG.add(m);
@@ -596,7 +600,7 @@ const chart = floorLayer(f => {
 chart.material.opacity = 0;
 
 
-// ───────────── the embedding space: a cloud of points, and three of its 1,536 axes ─────────────
+// ───────────── the embedding space: a cloud of points, and three of its 1536 axes ─────────────
 const dotTex = (() => { const c = document.createElement('canvas'); c.width = c.height = 64; const x = c.getContext('2d');
   const gr = x.createRadialGradient(32, 32, 0, 32, 32, 32); gr.addColorStop(0, 'rgba(255,255,255,1)'); gr.addColorStop(0.45, 'rgba(255,255,255,.85)'); gr.addColorStop(1, 'rgba(255,255,255,0)');
   x.fillStyle = gr; x.fillRect(0, 0, 64, 64); return new THREE.CanvasTexture(c); })();
@@ -664,7 +668,7 @@ function label(cls, html, anchor, align, style = '') {
   const L = {el, anchor, align, on: false};
   labels.push(L); return L;
 }
-const caseLabel = label('case', 'GEN SI — KNOW HOW<small>every concept is a point in 1,536 dimensions · let\'s learn</small>', () => new THREE.Vector3(0, CASE.h + 0.16, 1.35), 'mid');
+const caseLabel = label('case', 'GEN SI — KNOW HOW<small>every concept is a point in 1536 dimensions · let\'s learn</small>', () => new THREE.Vector3(0, CASE.h + 0.16, 1.35), 'mid');
 caseLabel.el.style.display = 'none';   // the name is painted on the box now
 const triLabels = ['dimension 1', 'dimension 2', 'dimension 3'].map((t, i) => label('dim', t, () => O.clone().add(triEnds[i].clone().multiplyScalar(1.07)), 'mid'));
 BUNDLES.forEach(b => {
