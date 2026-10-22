@@ -32,6 +32,8 @@ html,body{height:100%;margin:0;background:radial-gradient(120% 75% at 50% 24%,#0
   box-shadow:0 0 16px color-mix(in srgb,var(--c) 45%,transparent);font:500 13.5px/1 var(--sans);color:#fff;white-space:nowrap;animation:hintBob 1.6s ease-in-out infinite}
 .lbl.hint .hb::after{content:"";position:absolute;left:50%;bottom:-7px;width:12px;height:12px;background:rgba(8,13,25,.92);border-right:1px solid var(--c);border-bottom:1px solid var(--c);transform:translateX(-50%) rotate(45deg)}
 .lbl.hint .hb{position:relative}
+.lbl.hint.below{margin-top:min(9vh,70px)}   /* sits under the seal, clear of the wand */
+.lbl.hint.below .hb::after{bottom:auto;top:-7px;transform:translateX(-50%) rotate(225deg)}
 .lbl.hint .k{font:500 11px/1 var(--mono);letter-spacing:.12em;color:var(--c)}
 @keyframes hintBob{50%{transform:translateY(-5px)}}
 @media (prefers-reduced-motion:reduce){.lbl.hint .hb{animation:none}}
@@ -474,8 +476,8 @@ const WL = 1.0;   // half the wand's length
 const WAND_TILT = Math.PI - 0.42;
 const wandDir = new THREE.Vector3(-Math.sin(WAND_TILT), Math.cos(WAND_TILT), 0);
 const WAND_REST = SEALP.clone().add(new THREE.Vector3(0, 0.9, 0)).sub(wandDir.clone().multiplyScalar(WL + 0.03));
-const stick = new THREE.Mesh(new THREE.CylinderGeometry(0.018, 0.032, WL * 2, 12), new THREE.MeshStandardMaterial({color: 0x241a3d, roughness: 0.45, metalness: 0.3, transparent: true})); wand.add(stick);
-[-0.62, -0.7].forEach(y => { const band = new THREE.Mesh(new THREE.CylinderGeometry(0.036, 0.036, 0.03, 12), gold); band.position.y = y; wand.add(band); });
+const stick = new THREE.Mesh(new THREE.CylinderGeometry(0.018, 0.032, WL * 2, 12), new THREE.MeshStandardMaterial({color: 0xf1dfae, emissive: 0x8a6a2a, emissiveIntensity: 0.55, roughness: 0.35, metalness: 0.5, transparent: true})); wand.add(stick);   // ivory-gold: reads against the night and matches the seal
+[-0.62, -0.7].forEach(y => { const band = new THREE.Mesh(new THREE.CylinderGeometry(0.036, 0.036, 0.03, 12), new THREE.MeshStandardMaterial({color: 0x3a2a12, roughness: 0.5})); band.position.y = y; wand.add(band); });
 const tip = new THREE.Mesh(new THREE.SphereGeometry(0.05, 16, 12), new THREE.MeshBasicMaterial({color: 0xfff3c4, transparent: true})); tip.position.y = WL + 0.03; wand.add(tip);
 const tipGlow = new THREE.Sprite(new THREE.SpriteMaterial({map: null, color: 0xffd97a, transparent: true, opacity: 0.9, blending: THREE.AdditiveBlending, depthWrite: false})); tipGlow.position.y = WL + 0.03; tipGlow.scale.set(0.5, 0.5, 1); wand.add(tipGlow);
 wand.position.copy(WAND_REST); wand.rotation.z = WAND_TILT;
@@ -808,7 +810,8 @@ async function openCase() {
 let UNLOCK = null;
 function showUnlock(on) {
   if (!UNLOCK) UNLOCK = label('hint', `<div class="hb"><span class="k">${TOUCH ? 'TAP' : 'CLICK'}</span>Unlock here</div>`,
-    () => SEALP.clone().add(new THREE.Vector3(0, 0.5, 0)), 'above', '--c:#ffd98a');
+    () => SEALP, 'center', '--c:#ffd98a');
+  UNLOCK.el.classList.add('below');
   show(UNLOCK, on);
 }
 async function closeCase() {
