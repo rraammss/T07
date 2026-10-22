@@ -310,12 +310,20 @@ function tween(dur, fn) {
   return new Promise(res => tweens.push({t0: performance.now(), dur: T(dur) * 1000, fn, res}));
 }
 function stepTweens(now) {
-  tweens = tweens.filter(tw => {
-    const k = Math.min(1, (now - tw.t0) / tw.dur);
-    tw.fn(ease(k), k);
+  // robust: a tween started inside another tween is kept, and one that throws (its scene was torn down) just ends instead of freezing everything
+  const cur = tweens; tweens = [];
+  const keep = cur.filter(tw => {
+    const k = Math.max(0, Math.min(1, (now - tw.t0) / tw.dur));
+    try { tw.fn(ease(k), k); } catch (e) { tw.res(); return false; }
     if (k >= 1) { tw.res(); return false; }
     return true;
   });
+  tweens = keep.concat(tweens);
+  if (busy || (SES && SES.moving)) { if (!stepTweens.since) stepTweens.since = now; }
+  else stepTweens.since = 0;
+  if (stepTweens.since && !tweens.length && now - stepTweens.since > 6000) {   // nothing animating yet still locked: unlock
+    busy = false; if (SES) SES.moving = false; stepTweens.since = 0; try { ui(); } catch (e) {}
+  }
 }
 const wait = s => new Promise(r => setTimeout(r, T(s) * 1000));
 
@@ -1158,9 +1166,16 @@ async function tourRoom() {   // the guided walk: each board in turn, then the e
   }
   if (SES && SES.tour === tok) SES.tour = null;
 }
-function walk(dir) {
-  if (!SES || !SES.inside || SES.moving || busy) return;
+// rapid clicks don't pile up: each new request replaces the one still waiting, and only the latest runs
+async function settle() {
+  const my = SES.req = {};
+  while (SES && (SES.moving || busy)) await wait(0.05);
+  return !!SES && SES.req === my && SES.inside;
+}
+async function walk(dir) {
+  if (!SES || !SES.inside) return;
   SES.tour = null;
+  if (!(await settle())) return;
   const n = SES.at + dir;
   if (n >= ST.length) { if (SES.s < SESSIONS - 1) nextCoach(); else exitSession(true); }
   else if (n < 0) exitSession(false);
@@ -1175,18 +1190,16 @@ function buildTrain(b, j, s) {   // this session's coach, plus up to two coaches
 }
 function disposeRoom(r) { scene.remove(r.g); r.g.traverse(o => { if (o.material) [].concat(o.material).forEach(mt => { if (mt.map && mt.map !== dotTex) mt.map.dispose(); mt.dispose(); }); if (o.geometry) o.geometry.dispose(); }); }
 async function skipToDoor() {   // straight to the connecting hatch; from there, into the next session
-  if (!SES || !SES.inside || busy) return;
+  if (!SES || !SES.inside) return;
   SES.tour = null;
-  while (SES && SES.moving) await wait(0.05);
-  if (!SES) return;
+  if (!(await settle())) return;
   if (SES.at === ST.length - 1) { if (SES.s < SESSIONS - 1) nextCoach(); return; }
   await goTo(ST.length - 1);
 }
 async function jumpTo(n) {   // any session, in about a second: rush down the train, arrive at its entrance
-  if (!SES || !SES.inside || busy || n < 0 || n >= SESSIONS) return;
+  if (!SES || !SES.inside || n < 0 || n >= SESSIONS) return;
   SES.tour = null;
-  while (SES && SES.moving) await wait(0.05);
-  if (!SES || busy) return;
+  if (!(await settle())) return;
   if (n === SES.s) { goTo(0); return; }
   busy = true; SES.tour = null; SES.moving = true;
   const z0 = SES.C.z, dir = n > SES.s ? -1 : 1, a = SES.th, t = nearTh(dir < 0 ? 0 : Math.PI);
@@ -1255,7 +1268,10 @@ async function openSession(b, j, s) {
   tourRoom();
 }
 async function exitSession(throughBack) {
-  if (!SES || busy) return;
+  if (!SES) return;
+  SES.tour = null;
+  if (!throughBack) { if (!(await settle())) return; }   // let a step in progress finish first
+  else if (busy) return;
   busy = true; SES.tour = null; SES.moving = true;
   const {b} = SES; const blk = SES.blk;
   try {
