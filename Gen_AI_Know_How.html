@@ -72,6 +72,14 @@ html,body{height:100%;margin:0;background:radial-gradient(120% 75% at 50% 24%,#0
 #caption .c{color:var(--c)}
 #nav{right:max(16px,env(safe-area-inset-right,0px));bottom:calc(64px + env(safe-area-inset-bottom,0px));display:flex;gap:8px}
 #nav[hidden]{display:none!important}
+/* the way out and the way on: bright, so nobody misses them */
+#bBack,#bNext{font-size:12.5px;padding:11px 16px;color:#fff;font-weight:600}
+#bBack{border-color:#c9d5ea;background:rgba(30,42,66,.85);box-shadow:0 0 12px rgba(201,213,234,.35)}
+#bNext{border-color:var(--c,#ffd98a);color:var(--c,#ffd98a);background:color-mix(in srgb,var(--c,#ffd98a) 14%,rgba(10,16,30,.9));box-shadow:0 0 16px color-mix(in srgb,var(--c,#ffd98a) 55%,transparent);animation:nextGlow 2.2s ease-in-out infinite}
+#bBack:hover,#bBack:focus-visible{background:rgba(48,64,96,.95)}
+#bNext:hover,#bNext:focus-visible{box-shadow:0 0 26px color-mix(in srgb,var(--c,#ffd98a) 85%,transparent)}
+@keyframes nextGlow{50%{box-shadow:0 0 26px color-mix(in srgb,var(--c,#ffd98a) 80%,transparent)}}
+@media (prefers-reduced-motion:reduce){#bNext{animation:none}}
 #nogl{position:fixed;inset:0;overflow-y:auto;background:radial-gradient(120% 75% at 50% 18%,#0f1b33 0%,#070c18 55%,#03050b 100%);color:var(--ink);z-index:5;
   padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
 .fb{max-width:1040px;margin:0 auto;padding-block:clamp(40px,9vh,96px) 48px;text-align:center}
@@ -1398,7 +1406,7 @@ function ui() {
     WB.querySelector('[data-v="skip"]').hidden = SES.s >= SESSIONS - 1;
   }
   document.getElementById('bBack').hidden = level === 3;
-  if (cur) document.getElementById('bNext').textContent = `Bundle ${OPEN[(OPEN.indexOf(cur) + 1) % OPEN.length].n} ›`;
+  if (cur) { const nb = OPEN[(OPEN.indexOf(cur) + 1) % OPEN.length], bn = document.getElementById('bNext'); bn.textContent = `Bundle ${nb.n} ›`; bn.style.setProperty('--c', nb.col); }
   caption();
 }
 async function goLevel(l) {
