@@ -274,6 +274,7 @@ const scene = new THREE.Scene();
 renderer.setClearColor(0x000000, 0);
 scene.fog = new THREE.Fog(BG, 34, 90);
 const camera = new THREE.PerspectiveCamera(38, 1, 0.1, 300);
+
 const RM = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 const T = s => RM ? s * 0.25 : s;
 
@@ -616,6 +617,9 @@ const sky = cloud(3200, () => { const u = rnd(), t = rnd() * Math.PI * 2, r = 12
 sky.material.fog = false; scene.add(sky);
 const brightStars = cloud(220, () => { const u = rnd(), t = rnd() * Math.PI * 2, r = 115; const el = Math.asin(u * 0.9); return [Math.cos(t) * Math.cos(el) * r, Math.sin(el) * r * 0.8 + 4, Math.sin(t) * Math.cos(el) * r]; }, '#ffffff', 1.3, 1);
 brightStars.material.fog = false; scene.add(brightStars);
+// the lower half of the sky: only needed around a container, where there is no floor below (built off-stage)
+const skyLow = sky.clone(); skyLow.geometry = sky.geometry.clone(); { const a = skyLow.geometry.attributes.position; for (let i = 0; i < a.count; i++) a.setY(i, -a.getY(i) * 0.9 - 6); }
+skyLow.material = sky.material.clone(); skyLow.material.opacity = 0.6; scene.add(skyLow);
 tipGlow.material.map = dotTex; tipGlow.material.needsUpdate = true;
 coreMat.map = dotTex; coreMat.needsUpdate = true;
 FOUNT.v = []; FOUNT.t = []; FOUNT.r = [];
@@ -749,6 +753,8 @@ function showHint(b) {
   show(HINT.L, true);
 }
 function hideHint(forGood) { if (HINT.L) show(HINT.L, false); if (HINT.blk) HINT.blk.material.emissiveIntensity = 0.45; HINT.b = null; if (forGood) HINT.seen = true; }
+let ORBITED=false;   // the slow turn plays only the first time a bundle opens; later bundles just open
+function turnOnce(){ if (ORBITED) { showHint(cur); return; } ORBITED = true; orbitOnce().then(() => showHint(cur)); }
 async function orbitOnce() {   // one slow turn around the lifted containers, then the viewer drives
   const tok = SWEEP = {}, y0 = rig.yaw, p0 = rig.pitch;
   await tween(5, k => { if (SWEEP !== tok) return; rig.yaw = y0 - TAU * k; rig.pitch = p0 - 0.4 * Math.sin(Math.PI * k); });
@@ -898,7 +904,7 @@ async function openBundle(b) {
   await Promise.all([flyTo(shot(2, b), 1.35), tween(0.6, k => dimOthers(b, k))]);
   await openInner(b);
   busy = false; ui();
-  orbitOnce().then(() => showHint(cur));
+  turnOnce();
 }
 async function closeBundle() {
   hideHint(false);
@@ -919,7 +925,7 @@ async function nextBundle() {
   })]);
   await openInner(nb);
   busy = false; ui();
-  orbitOnce().then(() => showHint(cur));
+  turnOnce();
 }
 // ───────────── layer 3: step inside a container ─────────────
 // every session is a container. Inside: left wall = the problem, back wall = the architecture, right wall = the demo.
@@ -1560,12 +1566,14 @@ function frame(now) {
   if (!busy && !drag.on) { const h = pick(); if (h) { hoverLost = 0; setHover(h); } else if (hover && ++hoverLost < 8) {} else setHover(null); }
   scene.fog.near = rig.dist + 4; scene.fog.far = rig.dist + (bright ? 110 : 60);
   placeCamera();
+  sky.position.copy(camera.position); brightStars.position.copy(camera.position);
+  { const inRoom = level === 3 && SES && SES.inside; sky.visible = brightStars.visible = !inRoom; skyLow.visible = level === 3 && !inRoom; skyLow.position.copy(camera.position); }   // inside a container the ceiling stays dark, as before   // the sky travels with you, so the container (built off-stage) has stars all round too
   renderer.render(scene, camera);
   placeLabels();
   requestAnimationFrame(frame);
 }
 requestAnimationFrame(frame);
-window.__map = {ses: () => SES, walk, jumpTo, skipToDoor, openCase, openBundle: i => openBundle(BUNDLES[i]), openSession: (j, s) => openSession(cur, j, s), nextBundle, back, state: () => ({level, busy, cur: cur && cur.n})};
+window.__map = {ses: () => SES, walk, jumpTo, skipToDoor, openCase, openBundle: i => openBundle(BUNDLES[i]), openSession: (j, s) => openSession(cur, j, s), nextBundle, back, state: () => ({level, busy, cur: cur && cur.n, yaw: +rig.yaw.toFixed(3)})};
 })();
 </script>
 
