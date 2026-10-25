@@ -241,8 +241,15 @@ const BUNDLES = [
      ['Governance & Control Plane', 'Policy, safety, audit, and cost as shared capabilities'],
      ['Operations & Resilience', 'Releasing and operating enterprise SI systems']]},
   {n: 4, name: 'Hardware & Deployment', col: '#c4a6f2', pos: [0, 0, 8.4], tbd: true,
-   line: 'GPUs, serving, caching and the datacenter · coming soon',
-   tracks: [['CPU', 'coming soon'], ['GPU', 'coming soon'], ['Caching', 'coming soon'], ['Datacenter', 'coming soon']]},
+   line: 'Run open models on your own hardware: from the chip to the bill.',
+   tracks: [['Inference Under the Hood', 'Prefill vs decode, and why generation is memory-bound'],
+     ['GPUs & Accelerators', 'What matters inside a GPU, and when TPU, NPU or Apple silicon fits'],
+     ['Memory & KV Cache', 'What fits on a card, and why the context bill grows'],
+     ['Quantization & Model Fit', 'Choosing an open model and shrinking it: FP16 to 4-bit'],
+     ['Serving Engines & Batching', 'vLLM, TGI, llama.cpp, Ollama: batching and paged attention'],
+     ['Multi-GPU & Clusters', 'Parallelism, NVLink, GPU scheduling and sharing'],
+     ['Local & Edge Inference', 'Laptops, Apple silicon, on-prem boxes and phones'],
+     ['Self-Hosting Economics', 'Benchmarks, GPUs needed, and self-host vs API break-even']]},
 ];
 const OPEN = BUNDLES.filter(b => !b.tbd);   // bundles you can step into today
 const SESSIONS = 5;
@@ -263,7 +270,7 @@ if (!renderer || !window.THREE) {   // no 3D here: show the three bundles as car
   const PAGES = ['Bundle1_Enterprise_GenAI_Foundations.html', 'Bundle2_Engineering_Autonomous_Systems.html', 'Bundle3_EnterpriseAI_Platform_Architecture.html'];
   const e2 = t => String(t).replace(/&/g, '&amp;').replace(/</g, '&lt;');
   document.getElementById('fbCards').innerHTML = BUNDLES.map((b, i) => b.tbd ?
-    `<div class="fb-card" style="--c:${b.col}"><span class="k">PATH ${b.n} · COMING SOON</span><span class="n">${e2(b.name)}</span><span class="l">GPUs, serving, caching and the datacenter.</span><span class="go">Coming soon</span></div>` :
+    `<div class="fb-card" style="--c:${b.col}"><span class="k">PATH ${b.n}</span><span class="n">${e2(b.name)}</span><span class="l">Run open models on your own hardware.</span><span class="go"></span></div>` :
     `<a class="fb-card" style="--c:${b.col}" href="${SITE + PAGES[i]}" target="_blank" rel="noopener">
       <span class="k">PATH ${b.n}</span><span class="n">${e2(b.name)}</span><span class="l">${e2(b.line)}</span>
       <span class="c">${b.tracks.length} tracks · ${b.tracks.length * SESSIONS} sessions</span><span class="go">Open path ↗</span></a>`).join('');
@@ -696,7 +703,7 @@ const caseLabel = label('case', 'GEN SI — KNOW HOW<small>every concept is a po
 caseLabel.el.style.display = 'none';   // the name is painted on the box now
 const triLabels = ['dimension 1', 'dimension 2', 'dimension 3'].map((t, i) => label('dim', t, () => O.clone().add(triEnds[i].clone().multiplyScalar(1.07)), 'mid'));
 BUNDLES.forEach(b => {
-  b.label = label('bundle', `<div class="ey">PATH ${b.n}${b.tbd ? ' · COMING SOON' : ''}</div><div class="nm">${b.name}</div>`,
+  b.label = label('bundle', `<div class="ey">PATH ${b.n}</div><div class="nm">${b.name}</div>`,
     () => new THREE.Vector3(b.root.position.x, b.root.position.y + BOX.h + 0.14, b.root.position.z - b.d * 0.16), 'mid', `--c:${b.col}`);
   if (b.tiles) {
     b.rowLabels = b.rows.map((r, j) => label('track tile', `<span>${b.tracks[j][0].replace(/&/g, '&amp;')}</span>`,
@@ -924,7 +931,7 @@ async function orbitBundles() {   // one turn round the three bundles, dipping l
 }
 async function openBundle(b) {
   if (b.tbd && false) {   // (Path 4 now opens to show its planned tracks)
-    CAP.innerHTML = `<span class="c" style="--c:${b.col}">Path ${b.n} · ${esc(b.name)}</span><br><b>Coming soon</b> · GPUs, serving, caching and the datacenter`;
+    CAP.innerHTML = `<span class="c" style="--c:${b.col}">Path ${b.n} · ${esc(b.name)}</span><br>Run open models on your own hardware`;
     clearTimeout(openBundle.t); openBundle.t = setTimeout(caption, 3500); return;
   }
   BUNDLES.forEach(o => xray(o, 0));
@@ -1404,7 +1411,7 @@ function caption() {
   else if (hover && hover.kind === 'row' && hover.s != null && cur.sessions && !cur.tiles) {
     const t = cur.tracks[hover.j];
     html = `<span class="c" style="--c:${cur.col}">${esc(t[0])} · session ${hover.s + 1}</span> · <b>${esc(cur.sessions[hover.j][hover.s])}</b><br>Click the container to step inside`; }
-  else if (hover && hover.kind === 'row') { const t = cur.tracks[hover.j]; html = `<span class="c" style="--c:${cur.col}">Track ${hover.j + 1}</span> · <b>${esc(t[0])}</b> · ${esc(t[1])}<br>${cur.tbd ? 'coming soon' : `${SESSIONS} sessions · every one a live demo or a homework${cur.tiles ? ' · click to step inside' : ''}`}`; }
+  else if (hover && hover.kind === 'row') { const t = cur.tracks[hover.j]; html = `<span class="c" style="--c:${cur.col}">Track ${hover.j + 1}</span> · <b>${esc(t[0])}</b> · ${esc(t[1])}<br>${cur.tbd ? '' : `${SESSIONS} sessions · every one a live demo or a homework${cur.tiles ? ' · click to step inside' : ''}`}`; }
   else if (level === 0) html = GUIDED ? '<b>Click the glowing seal on the lid to open the box</b><br>Drag to turn the box' : 'Drag to turn the box all the way round';
 
   else if (level === 1) html = '';
@@ -1416,7 +1423,7 @@ function caption() {
       : SES.s < SESSIONS - 1 ? tag + `<br><b>Walk on through the gangway into session ${SES.s + 2}</b> · or press E to leave`
       : tag + '<br><b>Last session of this track</b> · walk on to leave through the exit · or press E';
   }
-  else html = `<b>${esc(cur.line)}</b><br>${cur.tbd ? 'Coming soon' : cur.tiles ? 'Click a track to step inside' : 'Click any container to step inside that session'} · drag to look around · scroll out to step back`;
+  else html = `<b>${esc(cur.line)}</b><br>${cur.tbd ? 'Hover a track to see what it covers' : cur.tiles ? 'Click a track to step inside' : 'Click any container to step inside that session'} · drag to look around · scroll out to step back`;
   if (TOUCH && html) html = html.replace(/scroll out to close the box/g, 'pinch to zoom · tap Gen SI above to close the box')
     .replace(/scroll out to step back/g, 'pinch to zoom · ‹ Back to step back').replace(/\bClick/g, 'Tap').replace(/\bclick/g, 'tap');
   CAP.innerHTML = html;
@@ -1508,7 +1515,7 @@ canvas.addEventListener('pointerup', e => {
   const h = pick();
   if (level === 0 && h) openCase();
   else if (level === 1 && h) { setHover(null); openBundle(h.b); }
-  else if (level === 2 && h && h.kind === 'row' && h.s != null) { const {j, s} = h; if (cur.tbd) { CAP.innerHTML = `<span class="c" style="--c:${cur.col}">${esc(cur.tracks[j][0])}</span><br><b>Coming soon</b>`; } else openSession(cur, j, s); }
+  else if (level === 2 && h && h.kind === 'row' && h.s != null) { const {j, s} = h; if (cur.tbd) { CAP.innerHTML = `<span class="c" style="--c:${cur.col}">${esc(cur.tracks[j][0])}</span><br>${esc(cur.tracks[j][1])}`; } else openSession(cur, j, s); }
   else if (level === 3 && h && h.kind === 'board' && SES && !SES.moving) { SES.tour = null; goTo(h.st); }
   else if (level === 3 && h && h.kind === 'arrow') walk(1);
 });
