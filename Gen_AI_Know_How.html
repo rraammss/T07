@@ -40,14 +40,17 @@ html,body{height:100%;margin:0;background:radial-gradient(120% 75% at 50% 24%,#0
 .lbl.dim{font:500 11.5px/1 var(--mono);letter-spacing:.14em;color:#c9d5ea;text-transform:uppercase}
 .lbl.case small{color:#d9c9a6!important;text-shadow:0 1px 6px rgba(3,6,12,.95);display:block;color:var(--dim);letter-spacing:.08em;font-size:11.5px;margin-top:4px}
 .lbl.bundle{text-align:center;text-shadow:0 1px 8px rgba(3,6,12,.9)}
-.lbl.bundle .ey{font-size:12px!important}
-.lbl.bundle .nm{font-size:16px!important}
+.lbl.bundle .ey{font-size:10.5px!important;letter-spacing:.12em!important}
+.lbl.bundle .nm{font-size:14.5px!important;white-space:normal;width:168px;margin-left:auto;margin-right:auto;line-height:1.25!important;margin-top:11px!important}
 .lbl.bundle .ey{font:500 11px/1 var(--mono);letter-spacing:.18em;color:var(--c)}
 .lbl.bundle .nm{font:500 14px/1.35 var(--sans);color:var(--ink);margin-top:6px}
 .lbl.bundle .ct{font:400 11.5px/1 var(--mono);color:var(--dim);margin-top:5px;letter-spacing:.06em}
 .lbl.track{font:500 19px/1 var(--sans);letter-spacing:.01em;color:#f2f5fa;text-shadow:0 1px 4px rgba(3,6,12,.8);transition:opacity .35s ease,color .2s}
 .lbl.track b{font-family:var(--mono);font-size:18px;color:var(--c);font-weight:500;margin-right:10px}
 .lbl.track.hot{color:#fff}
+.lbl.track.tile{font:600 15px/1.22 var(--sans);white-space:normal;width:180px;text-align:center;pointer-events:none;color:#10141c;text-shadow:0 1px 0 rgba(255,255,255,.3)}
+.lbl.track.tile b{display:block;font-size:13px;margin:0 0 4px;letter-spacing:.1em;color:rgba(16,20,28,.65)}
+.lbl.track.tile.hot{color:#000}.lbl.track.tile.dimmed{color:#2a3040;opacity:.75}
 .lbl.track.dimmed{color:var(--dim)}
 
 .ui{position:fixed;font-family:var(--mono);z-index:2}
@@ -132,6 +135,7 @@ html,body{height:100%;margin:0;background:radial-gradient(120% 75% at 50% 24%,#0
 .lbl.stitle .ey{font:500 11px/1 var(--mono);letter-spacing:.18em;color:var(--c)}
 .lbl.stitle .nm{font:500 17px/1.35 var(--sans);color:#fff;margin-top:7px;white-space:normal;max-width:560px}
 @media (max-width:560px){.lbl.wall .tx{font-size:12px}.lbl.stitle .nm{font-size:14px;max-width:300px}.lbl.bundle .nm{white-space:normal;width:150px;font-size:12.5px}.lbl.track{font-size:11px}#caption{font-size:11.5px;bottom:calc(16px + env(safe-area-inset-bottom,0px))}#nav{bottom:calc(84px + env(safe-area-inset-bottom,0px))}}
+@media (max-width:560px){.lbl.track.tile{font-size:11px;width:104px}.lbl.track.tile b{font-size:10px;margin-bottom:2px}}
 @media (prefers-reduced-motion:reduce){.lbl{transition:none}}
 /* small screens (phones, either way round): one tidy top row, labels sized to the boxes */
 @media (max-width:640px),(max-height:520px){
@@ -180,7 +184,7 @@ html,body{height:100%;margin:0;background:radial-gradient(120% 75% at 50% 24%,#0
   <button class="btn" id="bBack" type="button">‹ Back</button>
   <div class="ui" id="strip" hidden></div>
   <span id="wallBtns" hidden><button class="btn" type="button" data-v="skip">Next session ›</button> <button class="btn" type="button" data-v="-1">‹ Step back</button> <button class="btn" type="button" data-v="1">Walk on ›</button> <button class="btn leave" type="button" data-v="exit">Leave the container<span class="kb"> · E</span></button></span>
-  <button class="btn" id="bNext" type="button">Next bundle ›</button>
+  <button class="btn" id="bNext" type="button">Next path ›</button>
 </div>
 <div id="fade" aria-hidden="true"></div>
 <div id="nogl" hidden>
@@ -207,17 +211,17 @@ html,body{height:100%;margin:0;background:radial-gradient(120% 75% at 50% 24%,#0
 (function () {
 // ───────────── content ─────────────
 const BUNDLES = [
-  {n: 1, name: 'GenSI Foundations', col: '#e8c77a', pos: [-8.6, 0, 0],
+  {n: 1, name: 'Inference Engineering Foundations', col: '#e8c77a', pos: [-8.6, 0, 0],
    line: 'Understand the complete system before adding autonomy.',
    tracks: [['LLM Runtime', 'What actually happens when your application calls a model'],
-     ['Enterprise Data', 'Choosing how private data reaches the model'],
+     ['Enterprise Data Access', 'Choosing how private data reaches the model'],
      ['Knowledge Engineering', 'Building evidence the model can use'],
      ['Retrieval Engineering', 'Selecting and ranking the right evidence'],
      ['Multimodal', 'Engineering across documents, images, audio, and video'],
      ['SI Gateway', 'A controlled runtime entry point'],
-     ['Guardrails', 'Layered controls around probabilistic systems']]},
-  {n: 2, name: 'Engineering Autonomous Systems', col: '#8ec5f0', pos: [0, 0, -8.6],
-   line: 'Engineer controlled autonomy, from tools to enterprise protocols.',
+     ['Guardrails & Governance', 'Layered controls around probabilistic systems']]},
+  {n: 2, name: 'Agentic AI & Harness Engineering', col: '#8ec5f0', pos: [0, 0, -8.6],
+   line: 'After Path 1 · engineer controlled autonomy, from tools to the harness around them.',
    tracks: [['Agent Runtime', 'Turning model decisions into controlled execution'],
      ['Tool Engineering', 'Designing safe, stable, and observable actions'],
      ['Workflow Engineering', 'Durable state for long-running work'],
@@ -227,8 +231,8 @@ const BUNDLES = [
      ['Distributed Agents · A2A', 'Delegating work across autonomous boundaries'],
      ['Model Context Protocol', 'Standardizing access to tools and context'],
      ['Synthetic Test Data', 'Generating valid scenarios, not random rows']]},
-  {n: 3, name: 'GenSI Platform Architecture', col: '#8fe0bf', pos: [8.6, 0, 0],
-   line: 'Design the architecture first, then implement it on AWS and Azure.',
+  {n: 3, name: 'Platform Architecture', col: '#8fe0bf', pos: [8.6, 0, 0],
+   line: 'After Path 2 · design the platform first, then run it on AWS and Azure.',
    tracks: [['Architecture Decisions', 'Architecture first, cloud services second'],
      ['Identity & Network', 'Establishing the trust boundaries'],
      ['Runtime & Compute', 'Placing each workload on the right execution platform'],
@@ -237,8 +241,8 @@ const BUNDLES = [
      ['Agent Platform', 'Operating agent runtimes on AWS and Azure'],
      ['Governance & Control Plane', 'Policy, safety, audit, and cost as shared capabilities'],
      ['Operations & Resilience', 'Releasing and operating enterprise SI systems']]},
-  {n: 4, name: 'GenSI Hardware', col: '#c4a6f2', pos: [0, 0, 8.4], tbd: true,
-   line: 'Super Intelligence hardware · CPU, GPU, caching and the datacenter · coming soon',
+  {n: 4, name: 'Hardware & Deployment', col: '#c4a6f2', pos: [0, 0, 8.4], tbd: true,
+   line: 'GPUs, serving, caching and the datacenter · coming soon',
    tracks: [['CPU', 'coming soon'], ['GPU', 'coming soon'], ['Caching', 'coming soon'], ['Datacenter', 'coming soon']]},
 ];
 const OPEN = BUNDLES.filter(b => !b.tbd);   // bundles you can step into today
@@ -260,10 +264,10 @@ if (!renderer || !window.THREE) {   // no 3D here: show the three bundles as car
   const PAGES = ['Bundle1_Enterprise_GenAI_Foundations.html', 'Bundle2_Engineering_Autonomous_Systems.html', 'Bundle3_EnterpriseAI_Platform_Architecture.html'];
   const e2 = t => String(t).replace(/&/g, '&amp;').replace(/</g, '&lt;');
   document.getElementById('fbCards').innerHTML = BUNDLES.map((b, i) => b.tbd ?
-    `<div class="fb-card" style="--c:${b.col}"><span class="k">BUNDLE ${b.n} · TBD</span><span class="n">${e2(b.name)}</span><span class="l">Super Intelligence hardware: CPU, GPU, caching, datacenter.</span><span class="go">Coming soon</span></div>` :
+    `<div class="fb-card" style="--c:${b.col}"><span class="k">PATH ${b.n} · COMING SOON</span><span class="n">${e2(b.name)}</span><span class="l">GPUs, serving, caching and the datacenter.</span><span class="go">Coming soon</span></div>` :
     `<a class="fb-card" style="--c:${b.col}" href="${SITE + PAGES[i]}" target="_blank" rel="noopener">
-      <span class="k">BUNDLE ${b.n}</span><span class="n">${e2(b.name)}</span><span class="l">${e2(b.line)}</span>
-      <span class="c">${b.tracks.length} tracks · ${b.tracks.length * SESSIONS} sessions</span><span class="go">Open bundle ↗</span></a>`).join('');
+      <span class="k">PATH ${b.n}</span><span class="n">${e2(b.name)}</span><span class="l">${e2(b.line)}</span>
+      <span class="c">${b.tracks.length} tracks · ${b.tracks.length * SESSIONS} sessions</span><span class="go">Open path ↗</span></a>`).join('');
   document.getElementById('nogl').hidden = false;
   return;
 }
@@ -528,16 +532,22 @@ BUNDLES.forEach((b, i) => {
   const pl = new THREE.PointLight(new THREE.Color(b.col), 0, 12); pl.position.set(0, BOX.h + 1.2, 0); root.add(pl);
   // the tracks: one row per track, five session blocks per row (amber / steel, like the vector bars)
   const rowsG = new THREE.Group(); rowsG.visible = false; root.add(rowsG);
+  const TILES = true, TW = 2.45, TD = 0.74, TGX = 0.3, TGZ = 0.36;   // Path 1: each track is one clickable tile with its name on top
+  b.tiles = TILES; b.tileWH = [TW, TD];
+  if (TILES) { const nR = Math.ceil(b.tracks.length / 2); b.trayWD = [2 * TW + TGX + 0.9, nR * TD + (nR - 1) * TGZ + 0.9]; }   // the open tray hugs the tiles
+  const tileAt = j => { const rowsN = Math.ceil(b.tracks.length / 2), c = j % 2, rr = Math.floor(j / 2), last = j === b.tracks.length - 1 && b.tracks.length % 2;
+    const z0 = -((rowsN * TD + (rowsN - 1) * TGZ) / 2) + TD / 2; return [last ? 0 : (c ? 1 : -1) * (TW / 2 + TGX / 2), z0 + rr * (TD + TGZ)]; };
   const rows = b.tracks.map((t, j) => {
     const r = new THREE.Group();
     const z = -d / 2 + 0.55 + PITCH / 2 + j * PITCH;
     const lineCol = new THREE.Color(b.col).multiplyScalar(0.55);
-    const slab = solid(BOX.w - 1.6, 0.06, 0.42, lineCol, ROWFILL); slab.position.set(0, 0, 0); r.add(slab);   // well inside the base, even seen in perspective
+    const slab = TILES ? solid(TW, 0.22, TD, new THREE.Color(b.col), new THREE.Color(b.col).multiplyScalar(0.13)) : solid(BOX.w - 1.6, 0.06, 0.42, lineCol, ROWFILL); slab.position.set(0, TILES ? 0.05 : 0, 0); r.add(slab);   // well inside the base, even seen in perspective
     const blocks = [];
     for (let s = 0; s < SESSIONS; s++) {
       const bc = new THREE.Color(b.col), col = (s + j) % 2 ? bc.clone().offsetHSL(0, 0.08, -0.24) : bc.clone().offsetHSL(0, 0.04, -0.1);   // the bundle's own colour, light and deep
       const m = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.2, 0.3), new THREE.MeshStandardMaterial({color: col.clone().multiplyScalar(0.45), roughness: 0.9, emissive: col, emissiveIntensity: 0.45, transparent: true}));
-      if (SLIM) { m.scale.x = 0.62; m.position.set(1.12 + s * 0.4, 0.14, 0); } else m.position.set(0.4 + s * 0.56, 0.14, 0);
+      if (TILES) { m.visible = false; m.position.set(0, 0.2, 0); }   // no containers on a tile: an invisible marker per session keeps the session walk working
+      else if (SLIM) { m.scale.x = 0.62; m.position.set(1.12 + s * 0.4, 0.14, 0); } else m.position.set(0.4 + s * 0.56, 0.14, 0);
       r.add(m); blocks.push(m);   // containers on the right, the name gets the left
       const rib = [];
       for (let k = -3; k <= 3; k++) { const x = k * 0.062; rib.push(x, -0.1, 0.151, x, 0.1, 0.151, x, -0.1, -0.151, x, 0.1, -0.151); }
@@ -545,13 +555,17 @@ BUNDLES.forEach((b, i) => {
       const rg = new THREE.BufferGeometry(); rg.setAttribute('position', new THREE.Float32BufferAttribute(rib, 3));
       m.add(new THREE.LineSegments(rg, new THREE.LineBasicMaterial({color: col.clone().multiplyScalar(0.55), transparent: true, opacity: 0.9})));
     }
-    r.position.set(0, 0.25, z);
-    const STEP = 0.065, rise = (b.tracks.length - 1 - j) * STEP;
+    if (TILES) { const [tx, tz] = tileAt(j); r.position.set(tx, 0.25, tz); const bc = new THREE.Color(b.col), HEAT = ['#fff3b0', '#ffe27a', '#ffcf4d', '#f8b733', '#f09a24', '#e47b1c', '#d45a16'];   // heatmap: pale yellow → deep amber, track by track
+      const q = j / Math.max(1, b.tracks.length - 1), tc = b.n === 1 ? new THREE.Color(HEAT[Math.round(q * (HEAT.length - 1))]).offsetHSL(0, 0, -0.06)
+        : bc.clone().offsetHSL(0, 0.12, 0.08 - 0.3 * q);   // the same heat ramp in this path's own colour: light → deep
+      slab.userData.mesh.material = new THREE.MeshStandardMaterial({color: tc.clone().multiplyScalar(0.5), roughness: 0.55, metalness: 0.15, emissive: tc, emissiveIntensity: 0.42, transparent: true});
+      slab.userData.edges.material.color.copy(bc.clone().offsetHSL(0, 0, 0.12).convertSRGBToLinear()); (b.tileRects = b.tileRects || []).push([tx, tz]); } else r.position.set(0, 0.25, z);
+    const STEP = 0.065, rise = TILES ? 0 : (b.tracks.length - 1 - j) * STEP;
     if (rise > 0.01) {   // a short riser under each step, so the terrace stands on the platform
       const riser = solid(BOX.w - 1.6, rise, 0.42, lineCol.clone().multiplyScalar(0.7), 0x0d1628);
       riser.position.y = -0.03 - rise / 2; setOpacity(riser, 0.5, 1); r.add(riser);
     }
-    r.userData = {j, slab, blocks, z, home: 0.25, up: BOX.h * TRAY + 0.03 + rise, line: lineCol};
+    r.userData = {j, slab, blocks, z, home: 0.25, up: BOX.h * TRAY + 0.03 + rise, line: TILES ? new THREE.Color(b.col).convertSRGBToLinear() : lineCol};
     rowsG.add(r);
     return r;
   });
@@ -647,10 +661,17 @@ function stepBurst(now) {
   if (age > 1.4) BURST.t0 = -1;
 }
 const ambient = cloud(2600, () => [(rnd() - 0.5) * 60, 0.4 + rnd() * 12, (rnd() - 0.5) * 36 - 2], '#7f93b8', 0.12, 0.55); scene.add(ambient);
+BUNDLES.forEach(b => {   // the open tray of a tile path is sprinkled with points: concepts between the tracks
+  if (!b.tiles) return;
+  const inTile = (x, z) => b.tileRects.some(([tx, tz]) => Math.abs(x - tx) < b.tileWH[0] / 2 + 0.12 && Math.abs(z - tz) < b.tileWH[1] / 2 + 0.12);
+  const mk = (n, col, size, op) => { const d = cloud(n, () => { let x, z; do { x = (rnd() - 0.5) * (b.trayWD[0] - 0.3); z = (rnd() - 0.5) * (b.trayWD[1] - 0.3); } while (inTile(x, z)); return [x, BOX.h * TRAY + 0.03 + rnd() * 0.12, z]; }, col, size, op); d.material.fog = false; b.rowsG.add(d); };
+  mk(220, b.col, 0.07, 0.85); mk(80, '#ffffff', 0.05, 0.7);
+});
 BUNDLES.forEach(b => {   // each bundle carries its own neighbourhood: related ideas sit close together
   b.cloud = cloud(260, () => { let x, z; do { x = gauss() * 3.4; z = gauss() * 2.8; } while (Math.abs(x) < BOX.w / 2 + 0.2 && Math.abs(z) < b.d / 2 + 0.2); return [x, 0.3 + Math.abs(gauss()) * 1.6, z]; }, b.col, 0.13, 0.55);
   b.root.add(b.cloud);
 });
+
 // the triad on the landing: three of the dimensions, drawn from one corner of the box
 const TRI = new THREE.Group(); scene.add(TRI);
 const O = new THREE.Vector3(-CASE.w / 2 - 1.6, 0.02, CASE.d / 2 + 0.6);
@@ -676,8 +697,12 @@ const caseLabel = label('case', 'GEN SI — KNOW HOW<small>every concept is a po
 caseLabel.el.style.display = 'none';   // the name is painted on the box now
 const triLabels = ['dimension 1', 'dimension 2', 'dimension 3'].map((t, i) => label('dim', t, () => O.clone().add(triEnds[i].clone().multiplyScalar(1.07)), 'mid'));
 BUNDLES.forEach(b => {
-  b.label = label('bundle', `<div class="ey">BUNDLE ${b.n}${b.tbd ? ' · TBD' : ''}</div><div class="nm">${b.name}</div><div class="ct">${b.tbd ? 'Super Intelligence · coming soon' : `${b.tracks.length} tracks · ${b.tracks.length * SESSIONS} sessions`}</div>`,
+  b.label = label('bundle', `<div class="ey">PATH ${b.n}${b.tbd ? ' · COMING SOON' : ''}</div><div class="nm">${b.name}</div>`,
     () => new THREE.Vector3(b.root.position.x, b.root.position.y + BOX.h + 0.14, b.root.position.z - b.d * 0.16), 'mid', `--c:${b.col}`);
+  if (b.tiles) {
+    b.rowLabels = b.rows.map((r, j) => label('track tile', `<b>${j + 1}</b><span>${b.tracks[j][0].replace(/&/g, '&amp;')}</span>`,
+      () => new THREE.Vector3(b.root.position.x + r.position.x, b.root.position.y + r.position.y + 0.15, b.root.position.z + r.position.z), 'mid', `--c:${b.col}`));
+  } else
   b.rowLabels = b.rows.map((r, j) => labelFit(b, r, j, label('track', `<b>${j + 1}</b>${b.tracks[j][0].replace(/&/g, '&amp;')}`,
     () => new THREE.Vector3(b.root.position.x - (BOX.w - 1.6) / 2 + 0.18, b.root.position.y + r.position.y + 0.1, b.root.position.z + r.position.z), 'left', `--c:${b.col}`)));
 });
@@ -729,6 +754,7 @@ function shot(level, b) {
   if (level === 0) return {tx: 0.3, ty: 1.6, tz: 0, yaw: -0.62, pitch: 0.16, dist: fitDist(15, 9.5)};
   if (level === 1) return {tx: 0, ty: 0, tz: 0.6, yaw: 0.0, pitch: 0.86, dist: fitDist(camera.aspect < 0.8 ? 28 : 33, 30)};
   if (level === 3) return {...rig};
+  if (b.tiles) return {tx: b.pos[0], ty: 0.5, tz: b.pos[2] + 0.2, yaw: 0.0, pitch: 0.62, dist: fitDist(camera.aspect < 0.8 ? b.trayWD[0] + 0.6 : b.trayWD[0] + 2.4, b.trayWD[1] + 1.6)};
   return {tx: b.pos[0], ty: 0.9, tz: b.pos[2], yaw: 0.0, pitch: 0.62, dist: fitDist(camera.aspect < 0.8 ? 8.4 : 12, b.d + 3.2)};   // phones: the tray fills the width
 }
 const TAU = Math.PI * 2;
@@ -749,12 +775,12 @@ function showHint(b) {
   if (!HINT.L) HINT.L = label('hint', '', () => { blk === HINT.blk ? 0 : 0; HINT.blk.getWorldPosition(V3); return V3.clone().add(new THREE.Vector3(0, 0.45, 0)); }, 'above');
   HINT.blk = blk; HINT.b = b;
   HINT.L.el.style.setProperty('--c', b.col);
-  HINT.L.el.innerHTML = `<div class="hb"><span class="k">${TOUCH ? 'TAP' : 'CLICK'}</span>a container to step inside</div>`;
+  HINT.L.el.innerHTML = `<div class="hb"><span class="k">${TOUCH ? 'TAP' : 'CLICK'}</span>${b.tiles ? 'here to start this track' : 'a container to step inside'}</div>`;
   show(HINT.L, true);
 }
-function hideHint(forGood) { if (HINT.L) show(HINT.L, false); if (HINT.blk) HINT.blk.material.emissiveIntensity = 0.45; HINT.b = null; if (forGood) HINT.seen = true; }
+function hideHint(forGood) { if (HINT.L) show(HINT.L, false); if (HINT.blk) HINT.blk.material.emissiveIntensity = 0.45; if (HINT.b && HINT.b.tiles) HINT.b.rows[0].userData.slab.userData.mesh.material.emissiveIntensity = 0.42; HINT.b = null; if (forGood) HINT.seen = true; }
 let ORBITED=false;   // the slow turn plays only the first time a bundle opens; later bundles just open
-function turnOnce(){ if (ORBITED) { showHint(cur); return; } ORBITED = true; orbitOnce().then(() => showHint(cur)); }
+function turnOnce(){ if (cur && cur.tbd) return; if (ORBITED) { showHint(cur); return; } ORBITED = true; orbitOnce().then(() => showHint(cur)); }
 async function orbitOnce() {   // one slow turn around the lifted containers, then the viewer drives
   const tok = SWEEP = {}, y0 = rig.yaw, p0 = rig.pitch;
   await tween(5, k => { if (SWEEP !== tok) return; rig.yaw = y0 - TAU * k; rig.pitch = p0 - 0.4 * Math.sin(Math.PI * k); });
@@ -867,15 +893,19 @@ async function openInner(b) {
   b.rowsG.visible = true;
   await tween(0.7, k => { b.lidPivot.rotation.x = -2.0 * k; setOpacity(b.lid, lerp(1, 0.0, k), lerp(1, 0, k)); b.pl.intensity = 0.5 + 0.9 * k; b.hal.material.opacity = 0.22 + 0.18 * k; });
   b.lid.visible = false;
-  tween(0.8, k => { const sy = lerp(1, TRAY, k); b.body.scale.y = sy; b.body.position.y = BOX.h * sy / 2; setOpacity(b.body, 1, lerp(1, 0.6, k)); });
-  await Promise.all(b.rows.map((r, j) => wait(j * 0.06).then(() => tween(0.7, k => { r.position.y = lerp(r.userData.home, r.userData.up, k); })
+  tween(0.8, k => { const sy = lerp(1, TRAY, k); b.body.scale.y = sy; b.body.position.y = BOX.h * sy / 2; setOpacity(b.body, 1, lerp(1, 0.6, k));
+    if (b.trayWD) { b.body.scale.x = lerp(1, b.trayWD[0] / BOX.w, k); b.body.scale.z = lerp(1, b.trayWD[1] / b.d, k); } });
+  if (b.tiles) await Promise.all(b.rows.map((r, j) => wait(0.15 + j * 0.12).then(() => tween(0.55, k => { r.position.y = lerp(r.userData.home, r.userData.up + 0.55, k); })
+    .then(() => tween(0.35, k => { r.position.y = lerp(r.userData.up + 0.55, r.userData.up, k); })).then(() => show(b.rowLabels[j], true)))));
+  else await Promise.all(b.rows.map((r, j) => wait(j * 0.06).then(() => tween(0.7, k => { r.position.y = lerp(r.userData.home, r.userData.up, k); })
     .then(() => show(b.rowLabels[j], true)))));
 }
 async function closeInner(b) {
   b.rowLabels.forEach(L => show(L, false));
   await Promise.all(b.rows.map((r, j) => wait((b.rows.length - 1 - j) * 0.03).then(() => tween(0.4, k => { r.position.y = lerp(r.userData.up, r.userData.home, k); }))));
   b.lid.visible = true;
-  tween(0.5, k => { const sy = lerp(TRAY, 1, k); b.body.scale.y = sy; b.body.position.y = BOX.h * sy / 2; setOpacity(b.body, 1, lerp(0.6, 1, k)); });
+  tween(0.5, k => { const sy = lerp(TRAY, 1, k); b.body.scale.y = sy; b.body.position.y = BOX.h * sy / 2; setOpacity(b.body, 1, lerp(0.6, 1, k));
+    if (b.trayWD) { b.body.scale.x = lerp(b.trayWD[0] / BOX.w, 1, k); b.body.scale.z = lerp(b.trayWD[1] / b.d, 1, k); } });
   await tween(0.55, k => { b.lidPivot.rotation.x = -2.0 * (1 - k); setOpacity(b.lid, k, k); b.pl.intensity = 1.4 - 0.9 * k; b.hal.material.opacity = 0.4 - 0.18 * k; });
   b.rowsG.visible = false; setHover(null);
 }
@@ -894,8 +924,8 @@ async function orbitBundles() {   // one turn round the three bundles, dipping l
   if (SWEEP === tok) { rig.yaw = normYaw(rig.yaw); SWEEP = null; }
 }
 async function openBundle(b) {
-  if (b.tbd) {   // not built yet: say so and stay on the bundles
-    CAP.innerHTML = `<span class="c" style="--c:${b.col}">Bundle ${b.n} · ${esc(b.name)}</span><br><b>Coming soon</b> · Super Intelligence hardware: CPU, GPU, caching, datacenter`;
+  if (b.tbd && false) {   // (Path 4 now opens to show its planned tracks)
+    CAP.innerHTML = `<span class="c" style="--c:${b.col}">Path ${b.n} · ${esc(b.name)}</span><br><b>Coming soon</b> · GPUs, serving, caching and the datacenter`;
     clearTimeout(openBundle.t); openBundle.t = setTimeout(caption, 3500); return;
   }
   BUNDLES.forEach(o => xray(o, 0));
@@ -1121,7 +1151,7 @@ function buildRoom(b, j, s, opt = {}) {
   const sTitle = b.sessions ? b.sessions[j][s] : `Session ${s + 1}`;
   const handsOn = [];
   const boards = [[0, -1, 4.0], [1, 1, 0.4], [2, -1, -3.2]].map(([i, side, z]) => {
-    const ey = WALLS[i][0], wc = b.col, body = det ? det[i][1] : 'Content for this session arrives with the bundle page.';   // every board in the bundle's colour
+    const ey = WALLS[i][0], wc = b.col, body = det ? det[i][1] : 'Content for this session arrives with the path page.';   // every board in the bundle's colour
     const step = `${i + 1}  ·  ${i === 0 ? 'THE PROBLEM' : i === 1 ? 'THE ARCHITECTURE' : (det ? det[i][0] : 'LIVE DEMO')}`;
     const m = new THREE.Mesh(new THREE.PlaneGeometry(3.3, 1.8), new THREE.MeshBasicMaterial({map: panelTex(step, wc, body, !det), toneMapped: false}));
     m.position.set(side * (w / 2 - 0.03), 1.65, z); m.rotation.y = -side * Math.PI / 2; m.userData.station = i + 1; g.add(m);
@@ -1339,7 +1369,7 @@ function pick() {
   if (level === 3 && SES) { if (!SES.inside) return null; const hit = ray.intersectObjects([...SES.boards, ...SES.arrows])[0]; return hit ? (hit.object.userData.station ? {kind: 'board', st: hit.object.userData.station} : {kind: 'arrow'}) : null; }
   if (level === 2 && cur && cur.rowsG.visible) {
     const hits = ray.intersectObjects(cur.rows.flatMap(r => [r.userData.slab.userData.mesh, ...r.userData.blocks]));
-    if (hits.length) { const hit = hits[0].object; let o = hit; while (o && o.userData.j === undefined) o = o.parent; if (!o) return null; const s = o.userData.blocks.indexOf(hit); return {kind: 'row', j: o.userData.j, s: s < 0 ? null : s}; }
+    if (hits.length) { const hit = hits[0].object; let o = hit; while (o && o.userData.j === undefined) o = o.parent; if (!o) return null; const s = o.userData.blocks.indexOf(hit); return {kind: 'row', j: o.userData.j, s: cur.tiles ? 0 : s < 0 ? null : s}; }
   }
   return null;
 }
@@ -1349,7 +1379,7 @@ function setHover(h) {
   // undo the old highlight
   if (hover && hover.kind === 'bundle') { hover.b.root.position.y = 0; hover.b.pl.intensity = level === 1 ? 0.5 : hover.b.pl.intensity; hover.b.cloud.material.opacity = 0.55; }
   if (hover && hover.kind === 'row' && cur) {
-    const r = cur.rows[hover.j]; r.userData.slab.userData.edges.material.color.copy(r.userData.line);
+    const r = cur.rows[hover.j]; r.userData.slab.userData.edges.material.color.copy(r.userData.line); if (cur.tiles) { if (level === 2) r.position.y = r.userData.up; r.userData.slab.userData.mesh.material.emissiveIntensity = 0.42; }
     r.userData.blocks.forEach(m => { m.material.emissiveIntensity = 0.45; });
     cur.rowLabels.forEach(L => L.el.classList.remove('hot', 'dimmed'));
   }
@@ -1358,7 +1388,7 @@ function setHover(h) {
   if (h && h.kind === 'bundle') { h.b.root.position.y = 0; h.b.pl.intensity = 1.0; h.b.cloud.material.opacity = 1; }
   if (h && h.kind === 'row' && h.s != null && HINT.b) hideHint(true);
   if (h && h.kind === 'row') {
-    const r = cur.rows[h.j]; r.userData.slab.userData.edges.material.color.set(cur.col);
+    const r = cur.rows[h.j]; r.userData.slab.userData.edges.material.color.set(cur.col); if (cur.tiles) { r.position.y = r.userData.up + 0.08; r.userData.slab.userData.mesh.material.emissiveIntensity = 0.75; }
     r.userData.blocks.forEach((m, s) => { m.material.emissiveIntensity = s === h.s ? 1.4 : 0.75; });
     cur.rowLabels.forEach((L, j) => L.el.classList.add(j === h.j ? 'hot' : 'dimmed'));
   }
@@ -1371,14 +1401,14 @@ const esc = s => s.replace(/&/g, '&amp;').replace(/</g, '&lt;');
 const TOUCH = matchMedia('(hover:none),(pointer:coarse)').matches;
 function caption() {
   let html;
-  if (hover && hover.kind === 'bundle') html = `<span class="c" style="--c:${hover.b.col}">Bundle ${hover.b.n}</span> · <b>${esc(hover.b.name)}</b><br>${esc(hover.b.line)}`;
-  else if (hover && hover.kind === 'row' && hover.s != null && cur.sessions) {
+  if (hover && hover.kind === 'bundle') html = `<span class="c" style="--c:${hover.b.col}">Path ${hover.b.n}</span> · <b>${esc(hover.b.name)}</b><br>${esc(hover.b.line)}`;
+  else if (hover && hover.kind === 'row' && hover.s != null && cur.sessions && !cur.tiles) {
     const t = cur.tracks[hover.j];
     html = `<span class="c" style="--c:${cur.col}">${esc(t[0])} · session ${hover.s + 1}</span> · <b>${esc(cur.sessions[hover.j][hover.s])}</b><br>Click the container to step inside`; }
-  else if (hover && hover.kind === 'row') { const t = cur.tracks[hover.j]; html = `<span class="c" style="--c:${cur.col}">Track ${hover.j + 1}</span> · <b>${esc(t[0])}</b> · ${esc(t[1])}<br>${SESSIONS} sessions · every one a live demo or a homework`; }
+  else if (hover && hover.kind === 'row') { const t = cur.tracks[hover.j]; html = `<span class="c" style="--c:${cur.col}">Track ${hover.j + 1}</span> · <b>${esc(t[0])}</b> · ${esc(t[1])}<br>${cur.tbd ? 'coming soon' : `${SESSIONS} sessions · every one a live demo or a homework${cur.tiles ? ' · click to step inside' : ''}`}`; }
   else if (level === 0) html = GUIDED ? '<b>Click the glowing seal on the lid to open the box</b><br>Drag to turn the box' : 'Drag to turn the box all the way round';
 
-  else if (level === 1) html = 'Four bundles · drag to turn · click one to look inside · scroll out to close the box';
+  else if (level === 1) html = '';
   else if (level === 3) {
     const st = ST[SES.at] || ST[0], tag = `<span class="c" style="--c:${cur.col}">${esc(cur.tracks[SES.j][0])} · session ${SES.s + 1}</span>`;
     html = !SES.inside ? tag + '<br>The door is opening…'
@@ -1387,7 +1417,7 @@ function caption() {
       : SES.s < SESSIONS - 1 ? tag + `<br><b>Walk on through the gangway into session ${SES.s + 2}</b> · or press E to leave`
       : tag + '<br><b>Last session of this track</b> · walk on to leave through the exit · or press E';
   }
-  else html = `<b>${esc(cur.line)}</b><br>Click any container to step inside that session · drag to look around · scroll out to step back`;
+  else html = `<b>${esc(cur.line)}</b><br>${cur.tbd ? 'Coming soon' : cur.tiles ? 'Click a track to step inside' : 'Click any container to step inside that session'} · drag to look around · scroll out to step back`;
   if (TOUCH && html) html = html.replace(/scroll out to close the box/g, 'pinch to zoom · tap Gen SI above to close the box')
     .replace(/scroll out to step back/g, 'pinch to zoom · ‹ Back to step back').replace(/\bClick/g, 'Tap').replace(/\bclick/g, 'tap');
   CAP.innerHTML = html;
@@ -1400,8 +1430,8 @@ function ui() {
   if (zoomLevel !== level) { zoomLevel = level; ZOOM = 1; }
   document.getElementById('zoom').hidden = level === 3;
   const parts = [['Gen SI — Know how', 0]];
-  if (level >= 1) parts.push(['Bundles', 1]);
-  if (level >= 2 && cur) parts.push([`Bundle ${cur.n} · ${cur.name}`, 2]);
+  if (level >= 1) parts.push(['Paths', 1]);
+  if (level >= 2 && cur) parts.push([`Path ${cur.n} · ${cur.name}`, 2]);
   if (level === 3) parts.push([`${cur.tracks[SES.j][0]} · session ${SES.s + 1}`, 3]);
   CR.innerHTML = parts.map(([t, l], i) => (i ? '<i>›</i>' : '') + `<button type="button" data-l="${l}" class="${l === level ? 'cur' : ''}">${esc(t)}</button>`).join('');
   CR.querySelectorAll('button').forEach(bt => bt.onclick = () => goLevel(+bt.dataset.l));
@@ -1416,7 +1446,7 @@ function ui() {
     WB.querySelector('[data-v="skip"]').hidden = SES.s >= SESSIONS - 1;
   }
   document.getElementById('bBack').hidden = level === 3;
-  if (cur) { const nb = OPEN[(OPEN.indexOf(cur) + 1) % OPEN.length], bn = document.getElementById('bNext'); bn.textContent = `Bundle ${nb.n} ›`; bn.style.setProperty('--c', nb.col); }
+  if (cur) { const nb = OPEN[(OPEN.indexOf(cur) + 1) % OPEN.length], bn = document.getElementById('bNext'); bn.textContent = `Path ${nb.n} ›`; bn.style.setProperty('--c', nb.col); }
   caption();
 }
 async function goLevel(l) {
@@ -1479,7 +1509,7 @@ canvas.addEventListener('pointerup', e => {
   const h = pick();
   if (level === 0 && h) openCase();
   else if (level === 1 && h) { setHover(null); openBundle(h.b); }
-  else if (level === 2 && h && h.kind === 'row' && h.s != null) { const {j, s} = h; openSession(cur, j, s); }
+  else if (level === 2 && h && h.kind === 'row' && h.s != null) { const {j, s} = h; if (cur.tbd) { CAP.innerHTML = `<span class="c" style="--c:${cur.col}">${esc(cur.tracks[j][0])}</span><br><b>Coming soon</b>`; } else openSession(cur, j, s); }
   else if (level === 3 && h && h.kind === 'board' && SES && !SES.moving) { SES.tour = null; goTo(h.st); }
   else if (level === 3 && h && h.kind === 'arrow') walk(1);
 });
@@ -1531,7 +1561,7 @@ async function introCase() {
   if (SWEEP !== tok) return;
   rig.yaw = normYaw(rig.yaw); SWEEP = null; GUIDED = true; caption();
 }
-flyTo(shot(0), 1.3).then(() => { show(caseLabel, true); triLabels.forEach(L => show(L, true)); showUnlock(level === 0); introCase(); });
+flyTo(shot(0), 1.3).then(() => { if (level !== 0 || busy) return; show(caseLabel, true); triLabels.forEach(L => show(L, true)); showUnlock(true); introCase(); });
 let t0 = performance.now();
 function frame(now) {
   stepTweens(now);
@@ -1544,7 +1574,7 @@ function frame(now) {
   if (seal.visible && !busy) { runes.rotation.y = tt * (SEAL_HOT ? 0.8 : 0.25); sealRings[1].rotation.z = -tt * 0.4; sealGlow.material.opacity = (SEAL_HOT ? 0.42 : GUIDED ? 0.28 : 0.18) + 0.08 * Math.sin(tt * (GUIDED ? 3 : 1.8)); }
   if (level === 0 && !busy && wand.visible) { wand.position.y = WAND_REST.y + 0.14 * Math.sin(tt * 1.5); tip.material.color.setHSL(0.12, 1, 0.82 + 0.08 * Math.sin(tt * 4)); }
   stepBurst(now);
-  if (HINT.b && level === 2 && !(hover && hover.kind === 'row')) HINT.blk.material.emissiveIntensity = 0.45 + 0.9 * (0.5 + 0.5 * Math.sin(tt * 4));
+  if (HINT.b && level === 2 && !(hover && hover.kind === 'row')) { if (HINT.b.tiles) HINT.b.rows[0].userData.slab.userData.mesh.material.emissiveIntensity = 0.42 + 0.35 * (0.5 + 0.5 * Math.sin(tt * 4)); else HINT.blk.material.emissiveIntensity = 0.45 + 0.9 * (0.5 + 0.5 * Math.sin(tt * 4)); }
   if (CORE.k > 0.001 && FOUNT.pts) {   // the fountain inside the opening box
     const a = FOUNT.pts.geometry.attributes.position;
     for (let i = 0; i < FOUNT.n; i++) {
