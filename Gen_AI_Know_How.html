@@ -700,7 +700,7 @@ BUNDLES.forEach(b => {
   b.label = label('bundle', `<div class="ey">PATH ${b.n}${b.tbd ? ' · COMING SOON' : ''}</div><div class="nm">${b.name}</div>`,
     () => new THREE.Vector3(b.root.position.x, b.root.position.y + BOX.h + 0.14, b.root.position.z - b.d * 0.16), 'mid', `--c:${b.col}`);
   if (b.tiles) {
-    b.rowLabels = b.rows.map((r, j) => label('track tile', `<b>${j + 1}</b><span>${b.tracks[j][0].replace(/&/g, '&amp;')}</span>`,
+    b.rowLabels = b.rows.map((r, j) => label('track tile', `<span>${b.tracks[j][0].replace(/&/g, '&amp;')}</span>`,
       () => new THREE.Vector3(b.root.position.x + r.position.x, b.root.position.y + r.position.y + 0.15, b.root.position.z + r.position.z), 'mid', `--c:${b.col}`));
   } else
   b.rowLabels = b.rows.map((r, j) => labelFit(b, r, j, label('track', `<b>${j + 1}</b>${b.tracks[j][0].replace(/&/g, '&amp;')}`,
