@@ -1,0 +1,963 @@
+<!DOCTYPE html>
+<!-- saved from url=(0049)file:///Users/ramji/Downloads/Slide01Final_4.html -->
+<html lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>One genie</title>
+<style>
+  :root{
+    --navy:#1d3a5f; --navy2:#185FA5; --navy-bg:#eef3f9;
+    --teal:#0F6E56; --teal2:#1D9E75; --teal-bg:#E1F5EE;
+    --amber:#854F0B; --amber2:#EF9F27; --amber-bg:#FAEEDA;
+    --purple:#7B3FA0; --purple2:#9D5BC0; --purple-bg:#EFE7F4;
+    --red:#C0392B; --green2:#2E7D32;
+    --gray:#5F5E5A; --line:#e3e0d9; --bg:#ffffff; --ink:#222;
+    --lampglow:#F4C878;
+    --ease:cubic-bezier(.22,.61,.36,1);
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%}
+  body{font-family:system-ui,-apple-system,Segoe UI,sans-serif;
+    background:#ffffff;
+    color:var(--ink);min-height:100vh;display:flex;flex-direction:column;overflow:hidden;-webkit-font-smoothing:antialiased}
+  .stage{flex:1;width:min(1400px,98vw);margin:0 auto;display:flex;flex-direction:column;
+    padding:clamp(8px,1.4vh,16px) 0 clamp(4px,.8vh,10px);gap:clamp(4px,.8vh,9px)}
+  .head{display:flex;justify-content:space-between;align-items:flex-end;gap:14px}
+  .hleft{display:flex;flex-direction:column;gap:3px}
+  .kicker{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:11px;letter-spacing:.26em;text-transform:uppercase;color:var(--purple);font-weight:700}
+  h1{font-weight:800;font-size:clamp(20px,2.8vw,34px);line-height:1.05;letter-spacing:-.02em;color:var(--navy)}
+  h1 em{font-style:normal;color:var(--purple)}
+  .sub{font-size:clamp(11px,1.2vw,14px);color:var(--gray);font-weight:500}
+  .keyhint{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:11px;color:var(--gray);display:flex;align-items:center;gap:8px;
+    border:1px solid var(--line);background:#fff;border-radius:10px;padding:8px 14px;align-self:flex-start}
+  .kbd{display:inline-block;border:1.5px solid var(--line);border-bottom-width:3px;border-radius:6px;padding:2px 9px;font-weight:800;color:var(--navy);background:#fff}
+
+  .board{flex:1;min-height:0;position:relative}
+  .frame{position:absolute;inset:0;margin:auto;aspect-ratio:1400/640;max-width:100%;max-height:100%}
+  .frame > svg{width:100%;height:100%;display:block}
+
+  /* ---------- app cards ---------- */
+  .apps{position:absolute;inset:0;pointer-events:none}
+  .app{position:absolute;width:clamp(248px,23.5vw,330px);background:#fff;border:1.5px solid var(--line);
+    border-radius:14px;padding:10px 13px;box-shadow:0 10px 30px -18px rgba(20,20,40,.4);
+    display:flex;flex-direction:column;gap:6px;
+    transition:box-shadow .35s var(--ease),border-color .35s var(--ease),transform .35s var(--ease)}
+  .app.a1{left:7.6%;top:1.5%}   .app.a2{right:7.6%;top:1.5%}
+  .app.a3{left:7.6%;bottom:1.5%}.app.a4{right:7.6%;bottom:1.5%}
+  .app.active{border-color:var(--ac);box-shadow:0 0 0 2px var(--ac),0 16px 38px -16px var(--ac);transform:translateY(-2px)}
+  .a1{--ac:var(--teal);--acl:var(--teal2)} .a2{--ac:var(--amber2);--acl:var(--amber2)}
+  .a3{--ac:var(--navy2);--acl:var(--navy2)} .a4{--ac:var(--purple);--acl:var(--purple2)}
+
+  .apphd{display:flex;align-items:center;gap:9px}
+  .applogo{width:27px;height:27px;border-radius:7px;flex:none;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:12px;color:#fff;font-family:ui-monospace,monospace}
+  .appname{font-weight:800;font-size:14px;color:var(--navy);line-height:1.1}
+  .appmeta{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:9.5px;color:var(--ac);letter-spacing:.02em;font-weight:700}
+  .appbadge{margin-left:auto;font-family:ui-monospace,monospace;font-size:9.5px;font-weight:800;letter-spacing:.12em;color:var(--ac);border:1.2px solid var(--ac);border-radius:6px;padding:2px 6px;align-self:flex-start}
+  .role{font-family:ui-monospace,monospace;font-size:9.5px;font-weight:800;letter-spacing:.08em;color:var(--gray);border-top:1px dashed var(--line);padding-top:5px}
+  .role.g{color:var(--ac);border-top:1px solid var(--line)}
+  .typed{font-size:12.5px;font-weight:700;color:var(--ink);min-height:16px;line-height:1.3}
+  .caret{display:inline-block;width:7px;height:12px;background:var(--ac);margin-left:1px;vertical-align:-2px;opacity:0}
+  .app.typing .caret{opacity:1;animation:blink .7s steps(2) infinite}
+  @keyframes blink{50%{opacity:0}}
+
+  .attach{border-radius:8px;overflow:hidden;border:1px solid var(--line);margin-top:1px;opacity:0;transform:translateY(4px);transition:opacity .5s var(--ease),transform .5s var(--ease)}
+  .app.hasfile .attach{opacity:1;transform:none}
+  .attach svg{width:100%;height:auto;display:block}
+
+  .appans{font-size:11.5px;line-height:1.38;color:var(--ink);min-height:14px}
+  .appans .big{display:block;font-weight:800;color:var(--ac);font-size:1.25em;margin-bottom:1px}
+  .appans .tok{opacity:0}
+  .app.answered .appans .tok{opacity:1;transition:opacity .6s}
+
+  /* ---------- side modality labels ---------- */
+  .mods{position:absolute;inset:0;pointer-events:none}
+  .mod{position:absolute;display:flex;flex-direction:column;align-items:center;gap:5px;width:96px;opacity:.35;transition:opacity .4s var(--ease),transform .4s var(--ease)}
+  .mod.lit{opacity:1;transform:scale(1.06)}
+  .mod .chip{font-family:ui-monospace,monospace;font-size:11px;font-weight:800;letter-spacing:.08em;color:#fff;background:var(--mc);border-radius:8px;padding:5px 10px;text-align:center;line-height:1.15}
+  .mod .note{font-size:10px;color:var(--gray);font-weight:600;text-align:center;line-height:1.2}
+  .mod svg{width:40px;height:34px}
+  .m1{left:.4%;top:8%;--mc:var(--teal)}
+  .m2{right:.4%;top:8%;--mc:var(--amber2)}
+  .m3{left:.4%;top:64%;--mc:var(--navy2)}
+  .m4{right:.4%;top:64%;--mc:var(--purple)}
+
+  /* ---------- doors ---------- */
+  .door .flat{transform-box:fill-box;transform-origin:left center;transition:transform .8s var(--ease),opacity .5s var(--ease) .15s}
+  .door.open .flat{transform:scaleX(.1);opacity:0}
+  .door .ajar{transform-box:fill-box;transform-origin:right center;transform:scaleX(.1);opacity:0;transition:transform .8s var(--ease),opacity .4s var(--ease) .1s}
+  .door.open .ajar{transform:scaleX(1);opacity:1}
+  .wireArr{transition:opacity .4s}
+  .wireArr.on{stroke-dasharray:9 8;animation:dashflow .9s linear infinite}
+  @keyframes dashflow{to{stroke-dashoffset:-34}}
+  .door .glow{opacity:0;transition:opacity .7s}
+  .door.open .glow{opacity:.55}
+
+  /* ---------- genie ---------- */
+  #genieG{animation:float 5s ease-in-out infinite}
+  @keyframes float{0%,100%{transform:translate(700px,300px)}50%{transform:translate(700px,292px)}}
+  .thought{opacity:0;transition:opacity .4s var(--ease)}
+  .thinking .thought{opacity:1}
+  .spark{animation:tw 2.6s ease-in-out infinite}
+  .spark.s2{animation-delay:.9s}.spark.s3{animation-delay:1.7s}
+  @keyframes tw{0%,100%{opacity:.25}50%{opacity:1}}
+
+  /* ---------- bottom center TAB + chips ---------- */
+  .switcher{position:absolute;left:50%;bottom:1%;transform:translateX(-50%);display:flex;flex-direction:column;align-items:center;gap:7px;pointer-events:none}
+  .swrow{display:flex;align-items:center;gap:9px;font-family:ui-monospace,monospace;font-size:11px;color:var(--gray);font-weight:600}
+  .chips{display:flex;gap:9px}
+  .chip4{width:34px;height:34px;border-radius:9px;border:1.6px solid var(--cc);color:var(--cc);background:#fff;
+    display:flex;align-items:center;justify-content:center;font-family:ui-monospace,monospace;font-size:14px;font-weight:800;transition:all .3s var(--ease)}
+  .chip4.on{background:var(--cc);color:#fff;transform:translateY(-3px);box-shadow:0 8px 18px -8px var(--cc)}
+  .c1{--cc:var(--teal)} .c2{--cc:var(--amber2)} .c3{--cc:var(--navy2)} .c4{--cc:var(--purple)}
+
+  /* ---------- footer ---------- */
+  .bar{display:flex;align-items:center;justify-content:space-between;width:min(1400px,98vw);margin:0 auto;padding:2px 0 9px}
+  .hint{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:10.5px;color:var(--gray)}
+  .btns{display:flex;gap:10px}
+  button{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:12px;font-weight:700;letter-spacing:.04em;border:1.5px solid var(--line);background:#fff;color:var(--ink);padding:9px 18px;border-radius:9px;cursor:pointer;transition:all .2s var(--ease)}
+  button:hover{border-color:var(--navy);color:var(--navy)}
+  button:disabled{opacity:.4;cursor:default}
+  button.primary{background:var(--purple);color:#fff;border-color:var(--purple)}
+  button.primary:hover{background:var(--purple2)}
+
+  .fadeable{transition:opacity .6s var(--ease)}
+  .hidden0{opacity:0 !important;pointer-events:none !important}
+  @media (prefers-reduced-motion:reduce){*{animation:none !important;transition-duration:.01ms !important}}
+
+  /* ===== appended: the-genie-is-a-model beats ===== */
+  #ext-svg{opacity:0;transition:opacity .5s var(--ease)}
+  #ext-svg .wire{opacity:0}
+  #ext-html{position:absolute;inset:0;pointer-events:none;opacity:0;transition:opacity .5s var(--ease)}
+  #board.ext-on #ext-svg{opacity:1}
+  #board.ext-on #ext-html{opacity:1}
+  #board.ext-on #genieG,#board.ext-on #req,#board.ext-on #resG,#board.ext-on #loopG,#board.ext-on #auraRing{opacity:0}
+  #board.ext-cats #ext-svg .wire{opacity:1;stroke-dasharray:9 8;animation:extflow 1s linear infinite}
+  @keyframes extflow{to{stroke-dashoffset:-34}}
+  #sizes-svg{opacity:0;transition:opacity .5s var(--ease)}
+  #board.ext-sizes #sizes-svg{opacity:1}
+  #board.ext-sizes #genieG,#board.ext-sizes #req,#board.ext-sizes #resG,#board.ext-sizes #loopG,#board.ext-sizes #auraRing{opacity:0}
+  .np2{position:absolute;left:50%;top:2.5%;transform:translateX(-50%);background:#fff;border:1.5px solid var(--purple);
+    border-radius:14px;padding:9px 20px;text-align:center;box-shadow:0 12px 30px -18px rgba(123,63,160,.6)}
+  .np2 .k{font-family:ui-monospace,monospace;font-size:10px;letter-spacing:.14em;color:var(--gray);font-weight:700}
+  .np2 .big{font-weight:800;font-size:22px;color:var(--purple);letter-spacing:.02em;line-height:1.05}
+  .np2 .big em{font-style:normal;color:var(--navy)}
+  .samenote{position:absolute;left:50%;top:17%;transform:translateX(-50%);text-align:center;
+    font-family:ui-monospace,monospace;font-size:11.5px;color:var(--gray);font-weight:700;max-width:380px}
+  .samenote b{color:var(--navy)}
+  .plate2{position:absolute;bottom:2.5%;width:clamp(240px,25vw,340px);background:#fff;border:1.5px solid var(--line);
+    border-radius:14px;padding:11px 15px;box-shadow:0 12px 30px -18px rgba(20,20,40,.5)}
+  .plate2.left{left:2.4%;--pc:var(--teal)} .plate2.right{right:2.4%;--pc:var(--purple)}
+  .plate2 .ph{display:flex;align-items:center;gap:9px}
+  .plate2 .pdot{width:11px;height:11px;border-radius:50%;background:var(--pc);flex:none}
+  .plate2 .pname{font-weight:800;font-size:15px;color:var(--navy)} .plate2 .pname em{font-style:normal;color:var(--pc)}
+  .plate2 .ptag{margin-left:auto;font-family:ui-monospace,monospace;font-size:9px;font-weight:800;letter-spacing:.1em;
+    color:var(--pc);border:1.2px solid var(--pc);border-radius:6px;padding:2px 7px}
+  .plate2 .pdesc{font-size:11.5px;color:var(--gray);line-height:1.4;margin-top:6px}
+  .plate2 .pfam{font-family:ui-monospace,monospace;font-size:10.5px;color:var(--navy);font-weight:700;margin-top:6px;
+    border-top:1px dashed var(--line);padding-top:6px} .plate2 .pfam b{color:var(--pc)}
+  .cats2{position:absolute;left:50%;top:24%;transform:translateX(-50%);display:flex;flex-direction:column;gap:9px;width:clamp(230px,20vw,268px)}
+  .catHdr{text-align:center;font-family:ui-monospace,monospace;font-size:10px;letter-spacing:.1em;font-weight:800;color:var(--gray);opacity:0;transition:opacity .5s var(--ease)}
+  .cat2{display:flex;align-items:center;gap:11px;background:#fff;border:1.5px solid var(--cc);border-radius:12px;padding:9px 13px;
+    box-shadow:0 8px 22px -16px var(--cc);opacity:0;transform:translateY(8px) scale(.97);transition:opacity .5s var(--ease),transform .5s var(--ease)}
+  .cat2 .ic{width:30px;height:30px;border-radius:8px;background:var(--ccbg);display:flex;align-items:center;justify-content:center;flex:none}
+  .cat2 .ic svg{width:18px;height:18px;display:block}
+  .cat2 .lbl{font-weight:800;font-size:13.5px;color:var(--navy);line-height:1.1}
+  .cat2 .lbl small{display:block;font-weight:600;font-size:10px;color:var(--gray);letter-spacing:.02em;margin-top:1px}
+  .cat2.k1{--cc:var(--teal);--ccbg:var(--teal-bg)} .cat2.k2{--cc:var(--amber2);--ccbg:var(--amber-bg)}
+  .cat2.k3{--cc:var(--navy2);--ccbg:var(--navy-bg)} .cat2.k4{--cc:var(--purple);--ccbg:var(--purple-bg)}
+  #board.ext-cats .catHdr{opacity:1}
+  #board.ext-cats .cat2{opacity:1;transform:none}
+  #board.ext-cats .cat2.k2{transition-delay:.12s} #board.ext-cats .cat2.k3{transition-delay:.24s} #board.ext-cats .cat2.k4{transition-delay:.36s}
+
+
+  /* ===== fixed 16:9 stage, scaled to the window (no empty margins) ===== */
+  html,body{width:100%;height:100%;overflow:hidden;background:#fff}
+  body{display:block}
+  #cv{position:absolute;left:50%;top:50%;width:1460px;height:810px;transform:translate(-50%,-50%);transform-origin:center center;display:flex;flex-direction:column}
+  .stage{width:1400px;margin:0 auto;flex:1;padding:16px 0 4px;gap:6px}
+  .head{align-items:center}
+  .kicker{font-size:11px;letter-spacing:.2em}
+  h1{font-size:30px}
+  .stepc{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:12px;font-weight:800;letter-spacing:.16em;color:var(--purple);border:1.5px solid var(--purple-bg);background:#fff;border-radius:9px;padding:7px 12px}
+  .app{width:296px}
+  .plate2{width:330px}
+  .cats2{width:262px}
+  .sub{font-size:13px}
+  .bar{width:1400px;margin:0 auto;padding:2px 0 16px;justify-content:flex-start;gap:16px}
+  .cap{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:12px;color:var(--gray);font-weight:600}
+  .cap span{color:var(--purple);font-weight:800;letter-spacing:.12em;text-transform:uppercase;margin-right:4px}
+
+  /* ===== GraphRAG look: white page, dark rounded board, chip, progress dots ===== */
+  .head .kicker{color:#9578aa}
+  .head h1{color:#577da3;font-weight:850}
+  .head h1 em{color:#9578aa}
+  .stepc{padding:8px 14px;border-radius:10px;border:2px solid #7fa8d8;background:#0c1424;color:#cfe0fb;font:800 12px ui-monospace,Menlo,monospace;letter-spacing:.08em}
+  .board{border-radius:18px;border:1.5px solid #1d2c49;overflow:hidden;
+    background:radial-gradient(1100px 560px at 50% 46%,#141f36 0%,#0a1120 58%,#060b14 100%);box-shadow:inset 0 0 100px rgba(25,50,95,.5);
+    --navy:#dbe6f2;--gray:#a9b9cb;--ink:#f0f4f8;--line:#2a3c55}
+  .board .frame{inset:10px}
+  /* cards stay white, so they keep the original ink */
+  .board .app,.board .np2,.board .plate2,.board .cat2{--navy:#1d3a5f;--gray:#5F5E5A;--ink:#222;--line:#e3e0d9}
+  .board .app{box-shadow:0 14px 34px -14px rgba(0,0,0,.7)}
+  .board .mod .note,.board .samenote,.board .catHdr{color:#bcc9d9}
+  .board .samenote b{color:#efd080}
+  .wm{position:absolute;font:700 13px ui-monospace,Menlo,monospace;color:#a9b9cb;opacity:.28;z-index:1;pointer-events:none}
+  .wm1{left:22px;top:12px} .wm2{right:22px;bottom:10px}
+  .bar button{padding:8px 17px;border-radius:9px;border:1.5px solid #e3e0d9;background:#fff;color:#222;font:700 12.5px ui-monospace,Menlo,monospace}
+  .bar button.primary{color:#fff;background:#9578aa;border-color:#9578aa}
+  .bar button:disabled{opacity:.35}
+  .cap{color:#5F5E5A} .cap span{color:#9578aa}
+  .progress{margin-left:auto;display:flex;gap:7px}
+  .dot{width:9px;height:9px;border-radius:50%;background:#d1d8e2;border:1px solid #aeb9c7}
+  .dot.on{background:#9578aa;border-color:#9578aa}
+  .dot.done{background:#84b8a6;border-color:#84b8a6}
+
+  /* ===== board only: no title row, no caption, no dots ===== */
+  .head,.cap,.progress{display:none!important}
+  #cv{height:740px}
+
+  /* ===== compact side cards (same fonts, less padding, shorter pictures) ===== */
+  .board .app{width:276px;padding:8px 11px;gap:4px;border-radius:12px}
+  .board .apphd{gap:7px}
+  .board .applogo{width:24px;height:24px;font-size:11px}
+  .board .role{padding-top:3px}
+  .board .attach svg{height:70px}
+  .board .appans{line-height:1.32}
+
+  /* inside the agenda's overlay: dark surround, so the board sits seamlessly */
+  html.embed,html.embed body{background:#060b14}
+  html.embed .bar button{background:#0c1424;color:#e8eef8;border-color:#3e4d6b}
+  html.embed .bar button.primary{background:#9578aa;border-color:#9578aa;color:#fff}
+
+  /* plays on its own: no buttons, the board fills the stage */
+  html.auto .bar{display:none}
+  html.auto #cv{height:690px}
+  /* diagonal watermark across the whole board */
+  .wmd{position:absolute;inset:0;z-index:30;pointer-events:none;border-radius:18px;overflow:hidden}
+  .wmd::before{content:"";position:absolute;inset:-60%;transform:rotate(-24deg);
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='1280' height='200'%3E%3Ctext x='0' y='60' font-family='ui-monospace,Menlo,Consolas,monospace' font-size='20' font-weight='700' letter-spacing='3' fill='%23a9bdd6' fill-opacity='0.16'%3ESAMPLE PREVIEW %C2%B7 FULL STORY TAUGHT LIVE%3C/text%3E%3Ctext x='640' y='160' font-family='ui-monospace,Menlo,Consolas,monospace' font-size='20' font-weight='700' letter-spacing='3' fill='%23a9bdd6' fill-opacity='0.16'%3ESAMPLE PREVIEW %C2%B7 FULL STORY TAUGHT LIVE%3C/text%3E%3C/svg%3E");
+    background-repeat:repeat}
+</style>
+</head>
+<body>
+<script>if (window.self !== window.top) document.documentElement.classList.add("embed"); if (/[?&]autoplay=1/.test(location.search)) document.documentElement.classList.add("auto");</script>
+<div id="cv">
+  <main class="stage">
+    <header class="head">
+      <div class="hleft">
+        <div class="kicker">Path 1 · How an LLM Works · Session 1</div>
+        <h1>One genie, <em>four doors</em></h1>
+        </div>
+      <div class="stepc" id="stepc"></div>
+      </header>
+
+    <section class="board" id="board"><div class="wmd" aria-hidden="true"></div><div class="wm wm1">BigOhAcademy</div><div class="wm wm2">BigOhAcademy</div><div class="frame">
+      <svg viewBox="0 0 1400 640" xmlns="http://www.w3.org/2000/svg" id="bsvg" class="">
+        <defs>
+          <marker id="ah1" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="4" markerHeight="4" orient="auto"><path d="M1.6,1.4 L8,5 L1.6,8.6" fill="none" stroke="#2fbf8e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path></marker>
+          <marker id="ah2" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="4" markerHeight="4" orient="auto"><path d="M1.6,1.4 L8,5 L1.6,8.6" fill="none" stroke="var(--amber2)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path></marker>
+          <marker id="ah3" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="4" markerHeight="4" orient="auto"><path d="M1.6,1.4 L8,5 L1.6,8.6" fill="none" stroke="#4f9fe8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path></marker>
+          <marker id="ah4" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="4" markerHeight="4" orient="auto"><path d="M1.6,1.4 L8,5 L1.6,8.6" fill="none" stroke="#b07ad6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path></marker>
+          <radialgradient id="doorway" cx="50%" cy="50%" r="75%">
+            <stop offset="0%" stop-color="#3b3654"></stop><stop offset="100%" stop-color="#191627"></stop>
+          </radialgradient>
+          <lineargradient id="genieskin" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#4FA8E8"></stop><stop offset="100%" stop-color="#2E7CC4"></stop>
+          </lineargradient>
+        </defs>
+
+        <!-- dotted aura ring -->
+        <ellipse id="auraRing" cx="700" cy="305" rx="255" ry="215" fill="none" stroke="#b9b3c9" stroke-width="1.6" stroke-dasharray="2 8" opacity=".7"></ellipse>
+
+        <!-- curved arrows card ↔ door -->
+        <g fill="none" stroke-width="2.6" stroke-linecap="round">
+          <path class="wireArr fadeable hidden0" data-k="1" d="M300,168 C340,250 400,268 441,247" stroke="#2fbf8e" marker-end="url(#ah1)" opacity=".55" style="opacity: 0.45;"></path>
+          <path class="wireArr fadeable hidden0" data-k="2" d="M1100,168 C1060,250 1000,268 959,247" stroke="var(--amber2)" marker-end="url(#ah2)" opacity=".55" style="opacity: 0.45;"></path>
+          <path class="wireArr fadeable hidden0" data-k="3" d="M300,342 C350,310 410,330 441,386" stroke="#4f9fe8" marker-end="url(#ah3)" opacity=".55" style="opacity: 0.45;"></path>
+          <path class="wireArr fadeable hidden0" data-k="4" d="M1100,342 C1050,310 990,330 959,386" stroke="#b07ad6" marker-end="url(#ah4)" opacity=".55" style="opacity: 0.45;"></path>
+        </g>
+
+        <!-- ================= DOORS ================= -->
+        <!-- each: doorway (dark), swinging panel, glow -->
+        <g class="door fadeable d1 hidden0" id="door1" transform="translate(485,118)">
+          <ellipse class="glow" cx="18" cy="60" rx="58" ry="82" fill="var(--teal2)" style="filter:blur(12px)"></ellipse>
+          <rect x="-4" y="-6" width="48" height="132" rx="5" fill="none" stroke="#0c5843" stroke-width="3"></rect>
+          <rect x="0" y="-2" width="40" height="124" fill="url(#doorway)"></rect>
+          <g class="ajar">
+            <polygon points="0,-2 -34,-18 -34,138 0,122" fill="var(--teal)"></polygon>
+            <polygon points="-30,-10 -4,3 -4,55 -30,50" fill="var(--teal2)" opacity=".5"></polygon>
+            <polygon points="-30,58 -4,63 -4,116 -30,124" fill="var(--teal2)" opacity=".5"></polygon>
+            <circle cx="-28" cy="60" r="3.2" fill="var(--lampglow)"></circle>
+          </g>
+          <g class="flat">
+            <rect x="0" y="-2" width="40" height="124" fill="var(--teal)"></rect>
+            <rect x="5" y="5" width="30" height="50" rx="2" fill="var(--teal2)" opacity=".45"></rect>
+            <rect x="5" y="63" width="30" height="52" rx="2" fill="var(--teal2)" opacity=".45"></rect>
+            <circle cx="33" cy="60" r="3.2" fill="var(--lampglow)"></circle>
+          </g>
+        </g>
+        <g class="door fadeable d2 hidden0" id="door2" transform="translate(915,118) scale(-1,1)">
+          <ellipse class="glow" cx="18" cy="60" rx="58" ry="82" fill="var(--amber2)" style="filter:blur(12px)"></ellipse>
+          <rect x="-4" y="-6" width="48" height="132" rx="5" fill="none" stroke="#6b3f08" stroke-width="3"></rect>
+          <rect x="0" y="-2" width="40" height="124" fill="url(#doorway)"></rect>
+          <g class="ajar">
+            <polygon points="0,-2 -34,-18 -34,138 0,122" fill="#C77A18"></polygon>
+            <polygon points="-30,-10 -4,3 -4,55 -30,50" fill="var(--amber2)" opacity=".5"></polygon>
+            <polygon points="-30,58 -4,63 -4,116 -30,124" fill="var(--amber2)" opacity=".5"></polygon>
+            <circle cx="-28" cy="60" r="3.2" fill="var(--lampglow)"></circle>
+          </g>
+          <g class="flat">
+            <rect x="0" y="-2" width="40" height="124" fill="#C77A18"></rect>
+            <rect x="5" y="5" width="30" height="50" rx="2" fill="var(--amber2)" opacity=".45"></rect>
+            <rect x="5" y="63" width="30" height="52" rx="2" fill="var(--amber2)" opacity=".45"></rect>
+            <circle cx="33" cy="60" r="3.2" fill="var(--lampglow)"></circle>
+          </g>
+        </g>
+        <g class="door fadeable d3 hidden0" id="door3" transform="translate(485,392)">
+          <ellipse class="glow" cx="18" cy="60" rx="58" ry="82" fill="#5f9bd6" style="filter:blur(12px)"></ellipse>
+          <rect x="-4" y="-6" width="48" height="132" rx="5" fill="none" stroke="#123a63" stroke-width="3"></rect>
+          <rect x="0" y="-2" width="40" height="124" fill="url(#doorway)"></rect>
+          <g class="ajar">
+            <polygon points="0,-2 -34,-18 -34,138 0,122" fill="var(--navy2)"></polygon>
+            <polygon points="-30,-10 -4,3 -4,55 -30,50" fill="#5f9bd6" opacity=".5"></polygon>
+            <polygon points="-30,58 -4,63 -4,116 -30,124" fill="#5f9bd6" opacity=".5"></polygon>
+            <circle cx="-28" cy="60" r="3.2" fill="var(--lampglow)"></circle>
+          </g>
+          <g class="flat">
+            <rect x="0" y="-2" width="40" height="124" fill="var(--navy2)"></rect>
+            <rect x="5" y="5" width="30" height="50" rx="2" fill="#5f9bd6" opacity=".45"></rect>
+            <rect x="5" y="63" width="30" height="52" rx="2" fill="#5f9bd6" opacity=".45"></rect>
+            <circle cx="33" cy="60" r="3.2" fill="var(--lampglow)"></circle>
+          </g>
+        </g>
+        <g class="door fadeable d4 hidden0" id="door4" transform="translate(915,392) scale(-1,1)">
+          <ellipse class="glow" cx="18" cy="60" rx="58" ry="82" fill="var(--purple2)" style="filter:blur(12px)"></ellipse>
+          <rect x="-4" y="-6" width="48" height="132" rx="5" fill="none" stroke="#57297a" stroke-width="3"></rect>
+          <rect x="0" y="-2" width="40" height="124" fill="url(#doorway)"></rect>
+          <g class="ajar">
+            <polygon points="0,-2 -34,-18 -34,138 0,122" fill="var(--purple)"></polygon>
+            <polygon points="-30,-10 -4,3 -4,55 -30,50" fill="var(--purple2)" opacity=".5"></polygon>
+            <polygon points="-30,58 -4,63 -4,116 -30,124" fill="var(--purple2)" opacity=".5"></polygon>
+            <circle cx="-28" cy="60" r="3.2" fill="var(--lampglow)"></circle>
+          </g>
+          <g class="flat">
+            <rect x="0" y="-2" width="40" height="124" fill="var(--purple)"></rect>
+            <rect x="5" y="5" width="30" height="50" rx="2" fill="var(--purple2)" opacity=".45"></rect>
+            <rect x="5" y="63" width="30" height="52" rx="2" fill="var(--purple2)" opacity=".45"></rect>
+            <circle cx="33" cy="60" r="3.2" fill="var(--lampglow)"></circle>
+          </g>
+        </g>
+
+        <!-- ================= GENIE ================= -->
+        <g id="genieG">
+          <circle r="104" fill="#8fc4ec" opacity=".16"></circle>
+          <path class="spark" d="M-96,-96 l3,8 8,3 -8,3 -3,8 -3,-8 -8,-3 8,-3 Z" fill="#B08BD8"></path>
+          <path class="spark s2" d="M96,-110 l2.4,6.4 6.4,2.4 -6.4,2.4 -2.4,6.4 -2.4,-6.4 -6.4,-2.4 6.4,-2.4 Z" fill="#B08BD8"></path>
+          <path class="spark s3" d="M-118,-20 l2,5.5 5.5,2 -5.5,2 -2,5.5 -2,-5.5 -5.5,-2 5.5,-2 Z" fill="#B08BD8"></path>
+          <circle class="spark" cx="112" cy="-40" r="3" fill="#C9AAE8"></circle>
+          <circle class="spark s2" cx="-108" cy="-64" r="2.6" fill="#C9AAE8"></circle>
+
+          <!-- smoke tail into lamp -->
+          <path d="M0,64 C-30,86 26,96 4,118 C-12,134 6,142 2,150" fill="none" stroke="#7FB3E0" stroke-width="10" stroke-linecap="round" opacity=".55"></path>
+          <path d="M0,64 C-18,82 16,94 2,112 C-8,124 4,132 2,142" fill="none" stroke="#A9CDEC" stroke-width="5" stroke-linecap="round" opacity=".8"></path>
+
+          <!-- lamp -->
+          <g transform="translate(0,152)">
+            <ellipse cx="0" cy="26" rx="42" ry="7" fill="#000" opacity=".12"></ellipse>
+            <path d="M-34,10 C-34,-2 34,-2 34,10 C34,22 -34,22 -34,10 Z" fill="#C98A2B"></path>
+            <path d="M-24,6 C-24,-6 24,-6 24,6 L24,12 C24,18 -24,18 -24,6 Z" fill="#E0A93E"></path>
+            <path d="M34,4 C56,-2 66,6 62,14 C58,20 44,17 34,13 Z" fill="#C98A2B"></path>
+            <path d="M-8,-8 C-8,-13 8,-13 8,-8 L6,-4 L-6,-4 Z" fill="#E0A93E"></path>
+            <ellipse cx="0" cy="20" rx="26" ry="4.5" fill="#B27A22"></ellipse>
+          </g>
+
+          <!-- torso -->
+          <path d="M-52,10 C-56,52 -34,66 0,68 C34,66 56,52 52,10 C48,-24 24,-40 0,-40 C-24,-40 -48,-24 -52,10 Z" fill="url(#genieskin)"></path>
+          <!-- crossed arms -->
+          <path d="M-48,-6 C-30,14 -6,22 22,15" stroke="#2E7CC4" stroke-width="15" fill="none" stroke-linecap="round"></path>
+          <circle cx="26" cy="14" r="8.5" fill="#2E7CC4"></circle>
+          <rect x="6" y="9" width="13" height="11" rx="5.5" fill="var(--lampglow)"></rect>
+          <path d="M48,-6 C30,14 6,22 -22,15" stroke="#4FA8E8" stroke-width="15" fill="none" stroke-linecap="round"></path>
+          <circle cx="-26" cy="14" r="8.5" fill="#4FA8E8"></circle>
+          <rect x="-19" y="9" width="13" height="11" rx="5.5" fill="var(--lampglow)"></rect>
+
+          <!-- head -->
+          <circle cx="0" cy="-72" r="33" fill="#4FA8E8"></circle>
+          <!-- ears + earring -->
+          <circle cx="-33" cy="-70" r="6" fill="#3E92D6"></circle><circle cx="33" cy="-70" r="6" fill="#3E92D6"></circle>
+          <circle cx="35" cy="-60" r="4" fill="none" stroke="var(--lampglow)" stroke-width="2.2"></circle>
+          <!-- hair: swoosh ponytail -->
+          <path d="M-20,-98 C-8,-108 12,-108 22,-98 C30,-104 44,-118 62,-118 C46,-112 40,-104 38,-96 C50,-100 66,-98 74,-88 C58,-90 46,-86 38,-80 C30,-92 12,-98 0,-97 C-10,-98 -16,-97 -20,-98 Z" fill="#33466e"></path>
+          <path d="M-2,-101 C4,-116 20,-124 34,-122 C24,-114 20,-108 20,-100 Z" fill="#33466e"></path>
+          <!-- closed happy eyes -->
+          <path d="M-18,-76 C-14,-81 -7,-81 -3,-76" stroke="#14304f" stroke-width="2.8" fill="none" stroke-linecap="round"></path>
+          <path d="M3,-76 C7,-81 14,-81 18,-76" stroke="#14304f" stroke-width="2.8" fill="none" stroke-linecap="round"></path>
+          <!-- brows -->
+          <path d="M-19,-86 C-14,-89 -7,-89 -3,-87" stroke="#1d2340" stroke-width="2.4" fill="none" stroke-linecap="round"></path>
+          <path d="M3,-87 C7,-89 14,-89 19,-86" stroke="#1d2340" stroke-width="2.4" fill="none" stroke-linecap="round"></path>
+          <!-- smile + goatee -->
+          <path d="M-11,-60 C-4,-53 4,-53 11,-60" stroke="#14304f" stroke-width="2.6" fill="none" stroke-linecap="round"></path>
+          <path d="M-6,-52 C-4,-44 4,-44 6,-52 C4,-49 -4,-49 -6,-52 Z" fill="#33466e"></path>
+          <path d="M-13,-63 C-9,-66 9,-66 13,-63" stroke="#1d2340" stroke-width="2" fill="none" stroke-linecap="round" opacity=".8"></path>
+
+          <!-- thinking bubble -->
+          <g class="thought">
+            <circle cx="48" cy="-102" r="4" fill="#fff" opacity=".85"></circle>
+            <circle cx="62" cy="-116" r="7" fill="#fff" opacity=".9"></circle>
+            <circle cx="84" cy="-134" r="12" fill="#fff"></circle>
+            <text x="84" y="-129" text-anchor="middle" font-size="14" font-family="ui-monospace,monospace" fill="#7C4FB0" font-weight="800">…</text>
+          </g>
+
+          <text x="0" y="212" text-anchor="middle" font-size="21" font-family="ui-monospace,monospace" font-weight="800" fill="#c9a6ff" letter-spacing=".14em">GENIE</text>
+          <text x="0" y="230" text-anchor="middle" font-size="11" font-family="system-ui,sans-serif" font-weight="600" fill="var(--gray)">Same LLM Powers All</text>
+        </g>
+
+        <!-- request packet + response tokens -->
+        <g id="req" opacity="0"><rect x="-24" y="-10" width="48" height="20" rx="6" fill="var(--purple)" stroke="#fff" stroke-width="1.5"></rect><text id="reqT" x="0" y="4" text-anchor="middle" font-size="9" font-weight="800" fill="#fff" font-family="ui-monospace,monospace">{vid}</text></g>
+        <g id="resG"></g>
+        <g id="loopG"></g>
+      <g id="ext-svg">
+        <path class="wire" d="M452 330 C 520 330, 545 330, 566 330" fill="none" stroke="#0F6E56" stroke-width="2.6"></path>
+        <path class="wire" d="M948 330 C 880 330, 855 330, 834 330" fill="none" stroke="#7B3FA0" stroke-width="2.6"></path>
+        <g transform="translate(352,300) scale(0.6)">
+          <circle r="104" fill="#8fc4ec" opacity=".16"></circle>
+          <path class="spark" d="M-96,-96 l3,8 8,3 -8,3 -3,8 -3,-8 -8,-3 8,-3 Z" fill="#B08BD8"></path>
+          <path class="spark s2" d="M96,-110 l2.4,6.4 6.4,2.4 -6.4,2.4 -2.4,6.4 -2.4,-6.4 -6.4,-2.4 6.4,-2.4 Z" fill="#B08BD8"></path>
+          <path class="spark s3" d="M-118,-20 l2,5.5 5.5,2 -5.5,2 -2,5.5 -2,-5.5 -5.5,-2 5.5,-2 Z" fill="#B08BD8"></path>
+          <circle class="spark" cx="112" cy="-40" r="3" fill="#C9AAE8"></circle>
+          <circle class="spark s2" cx="-108" cy="-64" r="2.6" fill="#C9AAE8"></circle>
+
+          <!-- smoke tail into lamp -->
+          <path d="M0,64 C-30,86 26,96 4,118 C-12,134 6,142 2,150" fill="none" stroke="#7FB3E0" stroke-width="10" stroke-linecap="round" opacity=".55"></path>
+          <path d="M0,64 C-18,82 16,94 2,112 C-8,124 4,132 2,142" fill="none" stroke="#A9CDEC" stroke-width="5" stroke-linecap="round" opacity=".8"></path>
+
+          <!-- lamp -->
+          <g transform="translate(0,152)">
+            <ellipse cx="0" cy="26" rx="42" ry="7" fill="#000" opacity=".12"></ellipse>
+            <path d="M-34,10 C-34,-2 34,-2 34,10 C34,22 -34,22 -34,10 Z" fill="#C98A2B"></path>
+            <path d="M-24,6 C-24,-6 24,-6 24,6 L24,12 C24,18 -24,18 -24,6 Z" fill="#E0A93E"></path>
+            <path d="M34,4 C56,-2 66,6 62,14 C58,20 44,17 34,13 Z" fill="#C98A2B"></path>
+            <path d="M-8,-8 C-8,-13 8,-13 8,-8 L6,-4 L-6,-4 Z" fill="#E0A93E"></path>
+            <ellipse cx="0" cy="20" rx="26" ry="4.5" fill="#B27A22"></ellipse>
+          </g>
+
+          <!-- torso -->
+          <path d="M-52,10 C-56,52 -34,66 0,68 C34,66 56,52 52,10 C48,-24 24,-40 0,-40 C-24,-40 -48,-24 -52,10 Z" fill="url(#genieskin)"></path>
+          <!-- crossed arms -->
+          <path d="M-48,-6 C-30,14 -6,22 22,15" stroke="#2E7CC4" stroke-width="15" fill="none" stroke-linecap="round"></path>
+          <circle cx="26" cy="14" r="8.5" fill="#2E7CC4"></circle>
+          <rect x="6" y="9" width="13" height="11" rx="5.5" fill="var(--lampglow)"></rect>
+          <path d="M48,-6 C30,14 6,22 -22,15" stroke="#4FA8E8" stroke-width="15" fill="none" stroke-linecap="round"></path>
+          <circle cx="-26" cy="14" r="8.5" fill="#4FA8E8"></circle>
+          <rect x="-19" y="9" width="13" height="11" rx="5.5" fill="var(--lampglow)"></rect>
+
+          <!-- head -->
+          <circle cx="0" cy="-72" r="33" fill="#4FA8E8"></circle>
+          <!-- ears + earring -->
+          <circle cx="-33" cy="-70" r="6" fill="#3E92D6"></circle><circle cx="33" cy="-70" r="6" fill="#3E92D6"></circle>
+          <circle cx="35" cy="-60" r="4" fill="none" stroke="var(--lampglow)" stroke-width="2.2"></circle>
+          <!-- hair: swoosh ponytail -->
+          <path d="M-20,-98 C-8,-108 12,-108 22,-98 C30,-104 44,-118 62,-118 C46,-112 40,-104 38,-96 C50,-100 66,-98 74,-88 C58,-90 46,-86 38,-80 C30,-92 12,-98 0,-97 C-10,-98 -16,-97 -20,-98 Z" fill="#33466e"></path>
+          <path d="M-2,-101 C4,-116 20,-124 34,-122 C24,-114 20,-108 20,-100 Z" fill="#33466e"></path>
+          <!-- closed happy eyes -->
+          <path d="M-18,-76 C-14,-81 -7,-81 -3,-76" stroke="#14304f" stroke-width="2.8" fill="none" stroke-linecap="round"></path>
+          <path d="M3,-76 C7,-81 14,-81 18,-76" stroke="#14304f" stroke-width="2.8" fill="none" stroke-linecap="round"></path>
+          <!-- brows -->
+          <path d="M-19,-86 C-14,-89 -7,-89 -3,-87" stroke="#1d2340" stroke-width="2.4" fill="none" stroke-linecap="round"></path>
+          <path d="M3,-87 C7,-89 14,-89 19,-86" stroke="#1d2340" stroke-width="2.4" fill="none" stroke-linecap="round"></path>
+          <!-- smile + goatee -->
+          <path d="M-11,-60 C-4,-53 4,-53 11,-60" stroke="#14304f" stroke-width="2.6" fill="none" stroke-linecap="round"></path>
+          <path d="M-6,-52 C-4,-44 4,-44 6,-52 C4,-49 -4,-49 -6,-52 Z" fill="#33466e"></path>
+          <path d="M-13,-63 C-9,-66 9,-66 13,-63" stroke="#1d2340" stroke-width="2" fill="none" stroke-linecap="round" opacity=".8"></path>
+
+          <!-- thinking bubble -->
+          <g class="thought">
+            <circle cx="48" cy="-102" r="4" fill="#fff" opacity=".85"></circle>
+            <circle cx="62" cy="-116" r="7" fill="#fff" opacity=".9"></circle>
+            <circle cx="84" cy="-134" r="12" fill="#fff"></circle>
+            <text x="84" y="-129" text-anchor="middle" font-size="14" font-family="ui-monospace,monospace" fill="#7C4FB0" font-weight="800">…</text>
+          </g>
+
+          </g>
+        <g transform="translate(1048,300) scale(0.6)">
+          <circle r="104" fill="#8fc4ec" opacity=".16"></circle>
+          <path class="spark" d="M-96,-96 l3,8 8,3 -8,3 -3,8 -3,-8 -8,-3 8,-3 Z" fill="#B08BD8"></path>
+          <path class="spark s2" d="M96,-110 l2.4,6.4 6.4,2.4 -6.4,2.4 -2.4,6.4 -2.4,-6.4 -6.4,-2.4 6.4,-2.4 Z" fill="#B08BD8"></path>
+          <path class="spark s3" d="M-118,-20 l2,5.5 5.5,2 -5.5,2 -2,5.5 -2,-5.5 -5.5,-2 5.5,-2 Z" fill="#B08BD8"></path>
+          <circle class="spark" cx="112" cy="-40" r="3" fill="#C9AAE8"></circle>
+          <circle class="spark s2" cx="-108" cy="-64" r="2.6" fill="#C9AAE8"></circle>
+
+          <!-- smoke tail into lamp -->
+          <path d="M0,64 C-30,86 26,96 4,118 C-12,134 6,142 2,150" fill="none" stroke="#7FB3E0" stroke-width="10" stroke-linecap="round" opacity=".55"></path>
+          <path d="M0,64 C-18,82 16,94 2,112 C-8,124 4,132 2,142" fill="none" stroke="#A9CDEC" stroke-width="5" stroke-linecap="round" opacity=".8"></path>
+
+          <!-- lamp -->
+          <g transform="translate(0,152)">
+            <ellipse cx="0" cy="26" rx="42" ry="7" fill="#000" opacity=".12"></ellipse>
+            <path d="M-34,10 C-34,-2 34,-2 34,10 C34,22 -34,22 -34,10 Z" fill="#C98A2B"></path>
+            <path d="M-24,6 C-24,-6 24,-6 24,6 L24,12 C24,18 -24,18 -24,6 Z" fill="#E0A93E"></path>
+            <path d="M34,4 C56,-2 66,6 62,14 C58,20 44,17 34,13 Z" fill="#C98A2B"></path>
+            <path d="M-8,-8 C-8,-13 8,-13 8,-8 L6,-4 L-6,-4 Z" fill="#E0A93E"></path>
+            <ellipse cx="0" cy="20" rx="26" ry="4.5" fill="#B27A22"></ellipse>
+          </g>
+
+          <!-- torso -->
+          <path d="M-52,10 C-56,52 -34,66 0,68 C34,66 56,52 52,10 C48,-24 24,-40 0,-40 C-24,-40 -48,-24 -52,10 Z" fill="url(#genieskin)"></path>
+          <!-- crossed arms -->
+          <path d="M-48,-6 C-30,14 -6,22 22,15" stroke="#2E7CC4" stroke-width="15" fill="none" stroke-linecap="round"></path>
+          <circle cx="26" cy="14" r="8.5" fill="#2E7CC4"></circle>
+          <rect x="6" y="9" width="13" height="11" rx="5.5" fill="var(--lampglow)"></rect>
+          <path d="M48,-6 C30,14 6,22 -22,15" stroke="#4FA8E8" stroke-width="15" fill="none" stroke-linecap="round"></path>
+          <circle cx="-26" cy="14" r="8.5" fill="#4FA8E8"></circle>
+          <rect x="-19" y="9" width="13" height="11" rx="5.5" fill="var(--lampglow)"></rect>
+
+          <!-- head -->
+          <circle cx="0" cy="-72" r="33" fill="#4FA8E8"></circle>
+          <!-- ears + earring -->
+          <circle cx="-33" cy="-70" r="6" fill="#3E92D6"></circle><circle cx="33" cy="-70" r="6" fill="#3E92D6"></circle>
+          <circle cx="35" cy="-60" r="4" fill="none" stroke="var(--lampglow)" stroke-width="2.2"></circle>
+          <!-- hair: swoosh ponytail -->
+          <path d="M-20,-98 C-8,-108 12,-108 22,-98 C30,-104 44,-118 62,-118 C46,-112 40,-104 38,-96 C50,-100 66,-98 74,-88 C58,-90 46,-86 38,-80 C30,-92 12,-98 0,-97 C-10,-98 -16,-97 -20,-98 Z" fill="#33466e"></path>
+          <path d="M-2,-101 C4,-116 20,-124 34,-122 C24,-114 20,-108 20,-100 Z" fill="#33466e"></path>
+          <!-- closed happy eyes -->
+          <path d="M-18,-76 C-14,-81 -7,-81 -3,-76" stroke="#14304f" stroke-width="2.8" fill="none" stroke-linecap="round"></path>
+          <path d="M3,-76 C7,-81 14,-81 18,-76" stroke="#14304f" stroke-width="2.8" fill="none" stroke-linecap="round"></path>
+          <!-- brows -->
+          <path d="M-19,-86 C-14,-89 -7,-89 -3,-87" stroke="#1d2340" stroke-width="2.4" fill="none" stroke-linecap="round"></path>
+          <path d="M3,-87 C7,-89 14,-89 19,-86" stroke="#1d2340" stroke-width="2.4" fill="none" stroke-linecap="round"></path>
+          <!-- smile + goatee -->
+          <path d="M-11,-60 C-4,-53 4,-53 11,-60" stroke="#14304f" stroke-width="2.6" fill="none" stroke-linecap="round"></path>
+          <path d="M-6,-52 C-4,-44 4,-44 6,-52 C4,-49 -4,-49 -6,-52 Z" fill="#33466e"></path>
+          <path d="M-13,-63 C-9,-66 9,-66 13,-63" stroke="#1d2340" stroke-width="2" fill="none" stroke-linecap="round" opacity=".8"></path>
+
+          <!-- thinking bubble -->
+          <g class="thought">
+            <circle cx="48" cy="-102" r="4" fill="#fff" opacity=".85"></circle>
+            <circle cx="62" cy="-116" r="7" fill="#fff" opacity=".9"></circle>
+            <circle cx="84" cy="-134" r="12" fill="#fff"></circle>
+            <text x="84" y="-129" text-anchor="middle" font-size="14" font-family="ui-monospace,monospace" fill="#7C4FB0" font-weight="800">…</text>
+          </g>
+
+          </g>
+      </g>
+      <g id="sizes-svg" font-family="ui-monospace,monospace">
+
+          <text x="700" y="88" text-anchor="middle" font-size="24" font-weight="800" fill="var(--navy)" font-family="system-ui">One story · many genie sizes</text>
+          <text x="700" y="114" text-anchor="middle" font-size="12.5" fill="var(--gray)">every genie is the SAME frozen-brain story — they differ in exactly ONE number</text>
+          <g transform="translate(340,300) scale(0.62)"><circle cx="0" cy="-6" r="86" fill="#1a314f"></circle><path d="M0,64 C-6,84 10,96 2,112" fill="none" stroke="#9db8d8" stroke-width="7" stroke-linecap="round"></path><ellipse cx="4" cy="118" rx="30" ry="10" fill="#d69a3a"></ellipse><ellipse cx="0" cy="26" rx="46" ry="40" fill="#5b9bd5"></ellipse><circle cx="0" cy="-34" r="26" fill="#7db4e2"></circle><path d="M-10,-56 C-2,-70 16,-72 24,-62 C14,-62 6,-58 2,-52 Z" fill="#33466e"></path><path d="M-9,-38 q4,5 8,0 M3,-38 q4,5 8,0" stroke="#123" stroke-width="2.4" fill="none" stroke-linecap="round"></path><path d="M-8,-26 q8,7 16,0" stroke="#123" stroke-width="2.4" fill="none" stroke-linecap="round"></path><ellipse cx="0" cy="18" rx="26" ry="18" fill="#7db4e2" opacity=".55"></ellipse></g><g transform="translate(700,300) scale(0.88)"><circle cx="0" cy="-6" r="86" fill="#1a314f"></circle><path d="M0,64 C-6,84 10,96 2,112" fill="none" stroke="#9db8d8" stroke-width="7" stroke-linecap="round"></path><ellipse cx="4" cy="118" rx="30" ry="10" fill="#d69a3a"></ellipse><ellipse cx="0" cy="26" rx="46" ry="40" fill="#3b82c4"></ellipse><circle cx="0" cy="-34" r="26" fill="#5b9bd5"></circle><path d="M-10,-56 C-2,-70 16,-72 24,-62 C14,-62 6,-58 2,-52 Z" fill="#33466e"></path><path d="M-9,-38 q4,5 8,0 M3,-38 q4,5 8,0" stroke="#123" stroke-width="2.4" fill="none" stroke-linecap="round"></path><path d="M-8,-26 q8,7 16,0" stroke="#123" stroke-width="2.4" fill="none" stroke-linecap="round"></path><ellipse cx="0" cy="18" rx="26" ry="18" fill="#5b9bd5" opacity=".55"></ellipse></g><g transform="translate(1070,300) scale(1.18)"><circle cx="0" cy="-6" r="86" fill="#1a314f"></circle><path d="M0,64 C-6,84 10,96 2,112" fill="none" stroke="#9db8d8" stroke-width="7" stroke-linecap="round"></path><ellipse cx="4" cy="118" rx="30" ry="10" fill="#d69a3a"></ellipse><ellipse cx="0" cy="26" rx="46" ry="40" fill="#1f6cb0"></ellipse><circle cx="0" cy="-34" r="26" fill="#3b82c4"></circle><path d="M-10,-56 C-2,-70 16,-72 24,-62 C14,-62 6,-58 2,-52 Z" fill="#33466e"></path><path d="M-9,-38 q4,5 8,0 M3,-38 q4,5 8,0" stroke="#123" stroke-width="2.4" fill="none" stroke-linecap="round"></path><path d="M-8,-26 q8,7 16,0" stroke="#123" stroke-width="2.4" fill="none" stroke-linecap="round"></path><ellipse cx="0" cy="18" rx="26" ry="18" fill="#3b82c4" opacity=".55"></ellipse></g>
+          <text x="340" y="452" text-anchor="middle" font-size="17" font-weight="800" fill="#93c1ee">8B</text>
+          <text x="340" y="472" text-anchor="middle" font-size="11.5" fill="var(--ink)">8,000,000,000 parameters</text>
+          <text x="340" y="489" text-anchor="middle" font-size="10.5" fill="var(--gray)">runs on a laptop</text>
+          <text x="700" y="480" text-anchor="middle" font-size="17" font-weight="800" fill="#93c1ee">70B</text>
+          <text x="700" y="500" text-anchor="middle" font-size="11.5" fill="var(--ink)">70,000,000,000 parameters</text>
+          <text x="700" y="517" text-anchor="middle" font-size="10.5" fill="var(--gray)">needs a serious GPU</text>
+          <text x="1070" y="512" text-anchor="middle" font-size="17" font-weight="800" fill="#93c1ee">405B</text>
+          <text x="1070" y="532" text-anchor="middle" font-size="11.5" fill="var(--ink)">405,000,000,000 parameters</text>
+          <text x="1070" y="549" text-anchor="middle" font-size="10.5" fill="var(--gray)">datacenter only</text>
+          <rect x="360" y="576" width="680" height="52" rx="12" fill="#f3edfa" stroke="var(--purple)" stroke-width="2.2"></rect>
+          <text x="700" y="598" text-anchor="middle" font-size="13" font-weight="800" fill="var(--purple)">8B · 70B · 405B — billions of WHAT, exactly?</text>
+          <text x="700" y="618" text-anchor="middle" font-size="12.5" font-weight="800" fill="#1d3a5f">❄️ NEXT TOPIC: what is a PARAMETER?</text>
+      </g>
+      </svg>
+
+      <!-- side modality labels -->
+      <div class="mods">
+        <div class="mod fadeable m1 hidden0" id="mod1">
+          <span class="chip">TEXT</span><span class="note">(Text Only)</span>
+          <svg viewBox="0 0 40 34"><path d="M4,4 h32 v18 h-20 l-7,7 v-7 h-5 Z" fill="none" stroke="var(--teal)" stroke-width="2.4" stroke-linejoin="round"></path><line x1="10" y1="11" x2="30" y2="11" stroke="var(--teal)" stroke-width="2"></line><line x1="10" y1="16" x2="24" y2="16" stroke="var(--teal)" stroke-width="2"></line></svg>
+        </div>
+        <div class="mod fadeable m2 hidden0" id="mod2">
+          <span class="chip">TEXT +<br>IMAGE</span><span class="note">(Text with Image)</span>
+          <svg viewBox="0 0 40 34"><rect x="4" y="4" width="32" height="26" rx="3" fill="none" stroke="var(--amber2)" stroke-width="2.4"></rect><circle cx="13" cy="12" r="3" fill="var(--amber2)"></circle><path d="M7,26 L17,17 L23,22 L29,15 L34,20 V27 H7 Z" fill="var(--amber2)"></path></svg>
+        </div>
+        <div class="mod fadeable m3 hidden0" id="mod3">
+          <span class="chip">IMAGE</span><span class="note">(Image Only)</span>
+          <svg viewBox="0 0 40 34"><rect x="4" y="4" width="32" height="26" rx="3" fill="none" stroke="var(--navy2)" stroke-width="2.4"></rect><circle cx="13" cy="12" r="3" fill="var(--navy2)"></circle><path d="M7,26 L17,17 L23,22 L29,15 L34,20 V27 H7 Z" fill="var(--navy2)"></path></svg>
+        </div>
+        <div class="mod fadeable m4 hidden0" id="mod4">
+          <span class="chip">VIDEO</span><span class="note">(Video Only)</span>
+          <svg viewBox="0 0 40 34"><rect x="4" y="6" width="32" height="22" rx="4" fill="none" stroke="var(--purple)" stroke-width="2.4"></rect><path d="M17,12 L26,17 L17,22 Z" fill="var(--purple)"></path></svg>
+        </div>
+      </div>
+
+      <!-- app cards -->
+      <div class="apps">
+        <div class="app fadeable a1 answered hidden0" id="app1">
+          <div class="apphd">
+            <div class="applogo" style="background:#10A37F">❋</div>
+            <div class="applogo" style="background:#D97757;margin-left:-4px">✳</div>
+            <div><div class="appname">ChatGPT or Claude</div><div class="appmeta">chatgpt.com · claude.ai</div></div>
+            <div class="appbadge">APP 1</div>
+          </div>
+          <div class="role">You:</div>
+          <div class="typed" id="typed1"><span class="txt">What is the world population?</span><span class="caret"></span></div>
+          <div class="role g">Genie:</div>
+          <div class="appans" id="ans1"><span class="tok"><span class="big">≈ 8.3 billion people</span>Estimated world population in 2026 is about 8.3 billion, based on United Nations population estimates.</span></div>
+        </div>
+
+        <div class="app fadeable a2 hasfile answered hidden0" id="app2">
+          <div class="apphd">
+            <div class="applogo" style="background:#E8710A">CO</div>
+            <div><div class="appname">Colab</div><div class="appmeta">colab.research.google.com</div></div>
+            <div class="appbadge">APP 2</div>
+          </div>
+          <div class="role">You:</div>
+          <div class="typed" id="typed2"><span class="txt">Explain this diagram.</span><span class="caret"></span></div>
+          <div class="attach" id="att2">
+            <svg viewBox="0 0 300 118">
+              <rect width="300" height="118" fill="#fbfaf7"></rect>
+              <rect x="128" y="6" width="44" height="15" rx="3" fill="none" stroke="#5F5E5A" stroke-width="1"></rect><text x="150" y="16.5" text-anchor="middle" font-size="8" fill="#5F5E5A" font-family="system-ui">User</text>
+              <line x1="150" y1="21" x2="150" y2="30" stroke="#9a958a" stroke-width="1"></line>
+              <rect x="112" y="30" width="76" height="16" rx="3" fill="#dbeafe" stroke="#185FA5" stroke-width="1"></rect><text x="150" y="41" text-anchor="middle" font-size="8" fill="#185FA5" font-weight="700" font-family="system-ui">Load Balancer</text>
+              <path d="M150,46 L150,52 M150,52 L70,52 L70,58 M150,52 L150,58 M150,52 L230,52 L230,58" stroke="#9a958a" stroke-width="1" fill="none"></path>
+              <rect x="42" y="58" width="56" height="16" rx="3" fill="#dcfce7" stroke="#0F6E56" stroke-width="1"></rect><text x="70" y="69" text-anchor="middle" font-size="8" fill="#0F6E56" font-weight="700" font-family="system-ui">App Server</text>
+              <rect x="122" y="58" width="56" height="16" rx="3" fill="#dcfce7" stroke="#0F6E56" stroke-width="1"></rect><text x="150" y="69" text-anchor="middle" font-size="8" fill="#0F6E56" font-weight="700" font-family="system-ui">App Server</text>
+              <rect x="202" y="58" width="56" height="16" rx="3" fill="#dcfce7" stroke="#0F6E56" stroke-width="1"></rect><text x="230" y="69" text-anchor="middle" font-size="8" fill="#0F6E56" font-weight="700" font-family="system-ui">App Server</text>
+              <path d="M70,74 L70,82 L110,82 L110,88 M230,74 L230,82 L196,82 L196,88" stroke="#9a958a" stroke-width="1" fill="none"></path>
+              <rect x="74" y="88" width="66" height="16" rx="3" fill="#f4f4f5" stroke="#3f3f46" stroke-width="1"></rect><text x="107" y="99" text-anchor="middle" font-size="8" fill="#3f3f46" font-weight="700" font-family="system-ui">Database</text>
+              <rect x="166" y="88" width="60" height="16" rx="3" fill="#f3e8ff" stroke="#7B3FA0" stroke-width="1"></rect><text x="196" y="99" text-anchor="middle" font-size="8" fill="#7B3FA0" font-weight="700" font-family="system-ui">Cache</text>
+            </svg>
+          </div>
+          <div class="role g">Genie:</div>
+          <div class="appans" id="ans2"><span class="tok"><span class="big">3-tier architecture</span>User → load balancer → app servers → database and cache.</span></div>
+        </div>
+
+        <div class="app fadeable a3 hasfile answered hidden0" id="app3">
+          <div class="apphd">
+            <div class="applogo" style="background:#2563EB">◆</div>
+            <div><div class="appname">Jira</div><div class="appmeta">jira.atlassian.com</div></div>
+            <div class="appbadge">APP 3</div>
+          </div>
+          <div class="role">You:</div>
+          <div class="typed" id="typed3"><span class="txt">What’s in this image?</span><span class="caret"></span></div>
+          <div class="attach" id="att3">
+            <svg viewBox="0 0 300 110">
+              <rect width="300" height="110" fill="#bfe3f5"></rect>
+              <circle cx="248" cy="22" r="12" fill="#fff6d8" opacity=".9"></circle>
+              <ellipse cx="70" cy="24" rx="26" ry="8" fill="#fff" opacity=".85"></ellipse><ellipse cx="180" cy="16" rx="20" ry="6" fill="#fff" opacity=".8"></ellipse>
+              <path d="M0,64 L46,22 L86,62 Z" fill="#5b7c9c"></path><path d="M46,22 L60,36 L52,40 L64,52 Z" fill="#eef6fb"></path>
+              <path d="M60,66 L118,14 L176,66 Z" fill="#42607e"></path><path d="M118,14 L134,30 L124,34 L140,50 Z" fill="#eef6fb"></path>
+              <path d="M150,66 L206,26 L262,66 Z" fill="#5b7c9c"></path><path d="M206,26 L218,38 L210,42 L222,52 Z" fill="#eef6fb"></path>
+              <path d="M240,66 L278,38 L300,58 L300,66 Z" fill="#42607e"></path>
+              <rect x="0" y="64" width="300" height="46" fill="#2E86AB"></rect>
+              <path d="M0,64 h300 v6 c-60,6 -120,-4 -180,2 c-50,5 -90,-3 -120,-1 Z" fill="#57a8c9" opacity=".7"></path>
+              <ellipse cx="80" cy="86" rx="46" ry="4" fill="#7cc0da" opacity=".55"></ellipse><ellipse cx="210" cy="96" rx="56" ry="4" fill="#7cc0da" opacity=".45"></ellipse>
+              <path d="M18,80 L26,60 L34,80 Z" fill="#1d5c3a"></path><path d="M18,70 L26,52 L34,70 Z" fill="#27754b"></path>
+              <path d="M270,84 L279,62 L288,84 Z" fill="#1d5c3a"></path><path d="M270,73 L279,54 L288,73 Z" fill="#27754b"></path>
+            </svg>
+          </div>
+          <div class="role g">Genie:</div>
+          <div class="appans" id="ans3"><span class="tok"><span class="big">A beautiful landscape</span>Mountains, trees, and a lake under a blue sky.</span></div>
+        </div>
+
+        <div class="app fadeable a4 hasfile answered hidden0" id="app4">
+          <div class="apphd">
+            <div class="applogo" style="background:#1f1f1f">N</div>
+            <div><div class="appname">Notion</div><div class="appmeta">notion.so</div></div>
+            <div class="appbadge">APP 4</div>
+          </div>
+          <div class="role">You:</div>
+          <div class="typed" id="typed4"><span class="txt">Summarize this video.</span><span class="caret"></span></div>
+          <div class="attach" id="att4">
+            <svg viewBox="0 0 300 116">
+              <rect width="300" height="116" fill="#0d1420"></rect>
+              <rect x="0" y="0" width="300" height="76" fill="#16324a"></rect>
+              <circle cx="248" cy="18" r="9" fill="#fef3c7" opacity=".85"></circle>
+              <ellipse cx="60" cy="20" rx="24" ry="6" fill="#fff" opacity=".3"></ellipse><ellipse cx="150" cy="12" rx="18" ry="5" fill="#fff" opacity=".25"></ellipse>
+              <!-- rocket -->
+              <g transform="translate(150,10)">
+                <rect x="-7" y="8" width="14" height="40" rx="6" fill="#e8e6e1"></rect>
+                <path d="M-7,14 C-7,4 7,4 7,14 L7,18 L-7,18 Z" fill="#C0392B"></path>
+                <path d="M-7,42 L-14,54 L-7,50 Z" fill="#C0392B"></path><path d="M7,42 L14,54 L7,50 Z" fill="#C0392B"></path>
+                <circle cx="0" cy="24" r="3.4" fill="#16324a" stroke="#9fb6c6" stroke-width="1"></circle>
+                <path class="flame" d="M-4,50 C-4,60 4,60 4,50 C2,55 -2,55 -4,50 Z" fill="#EF9F27"></path>
+                <path d="M-2,50 C-2,56 2,56 2,50 Z" fill="#fde68a"></path>
+              </g>
+              <ellipse cx="150" cy="72" rx="52" ry="9" fill="#d9d3c7" opacity=".85"></ellipse>
+              <ellipse cx="112" cy="74" rx="22" ry="6" fill="#efe9dd" opacity=".9"></ellipse><ellipse cx="188" cy="74" rx="22" ry="6" fill="#efe9dd" opacity=".9"></ellipse>
+              <!-- player chrome -->
+              <rect x="0" y="82" width="300" height="34" fill="#0a0f18"></rect>
+              <path d="M14,92 L26,99 L14,106 Z" fill="#fff"></path>
+              <text x="38" y="102" font-size="9" fill="#cbd5e1" font-family="ui-monospace,monospace">0:00 / 0:45</text>
+              <rect x="100" y="97" width="150" height="3.5" rx="2" fill="#334155"></rect><rect x="100" y="97" width="46" height="3.5" rx="2" fill="#9D5BC0"></rect>
+              <circle cx="146" cy="98.8" r="4" fill="#fff"></circle>
+              <rect x="262" y="92" width="4" height="12" fill="#cbd5e1"></rect><rect x="270" y="92" width="4" height="12" fill="#cbd5e1"></rect>
+              <rect x="282" y="92" width="10" height="12" fill="none" stroke="#cbd5e1" stroke-width="1.6"></rect>
+            </svg>
+          </div>
+          <div class="role g">Genie:</div>
+          <div class="appans" id="ans4"><span class="tok"><span class="big">A rocket launch</span>Lift-off, ascent, and the rocket reaching the upper atmosphere.</span></div>
+        </div>
+      </div>
+      <div id="ext-html">
+        <div class="np2"><div class="k">THE GENIE IS CALLED A</div><div class="big">MODEL <em>·  a genie in a file</em></div></div>
+        <div class="samenote">same genie · <b>the difference is who holds the file — not the model itself</b></div>
+        <div class="cats2">
+          <div class="catHdr">BOTH ANSWER · FOUR KINDS OF DATA</div>
+          <div class="cat2 k1"><div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="#0F6E56" stroke-width="2.2" stroke-linecap="round"><path d="M5 7h14M5 12h14M5 17h9"></path></svg></div><div class="lbl">Text<small>words · code</small></div></div>
+          <div class="cat2 k2"><div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="#854F0B" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h6M4 11h6M4 15h4"></path><rect x="13" y="6" width="7" height="7" rx="1.5"></rect><path d="m13.5 12 2-2 2 2.5"></path></svg></div><div class="lbl">Text + Image<small>a doc with pictures</small></div></div>
+          <div class="cat2 k3"><div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="#185FA5" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="5" width="16" height="14" rx="2"></rect><circle cx="9" cy="10" r="1.6"></circle><path d="m5 17 4-4 3 3 3-3 4 4"></path></svg></div><div class="lbl">Image<small>a photo · a scan</small></div></div>
+          <div class="cat2 k4"><div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="#7B3FA0" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 10v4M8 7v10M12 5v14M16 8v8M20 10v4"></path></svg></div><div class="lbl">Audio + Video<small>speech · clips</small></div></div>
+        </div>
+        <div class="plate2 left"><div class="ph"><span class="pdot"></span><span class="pname">Open <em>models</em></span><span class="ptag">WEIGHTS YOU HOLD</span></div><div class="pdesc">The genie's file is public — you can <b>download it and run it yourself</b>, on your own machine or server.</div><div class="pfam">e.g. <b>Llama · Mistral · Qwen · Gemma · DeepSeek</b></div></div>
+        <div class="plate2 right"><div class="ph"><span class="pdot"></span><span class="pname">Proprietary <em>models</em></span><span class="ptag">SERVED VIA API</span></div><div class="pdesc">The genie stays in the lab — you <b>call it over the internet</b>; the weights aren't yours to keep.</div><div class="pfam">e.g. <b>GPT · Claude · Gemini</b></div></div>
+      </div>
+    </div></section>
+  </main>
+
+  <div class="bar">
+    <div class="btns">
+      <button id="back">← Back</button>
+      <button class="primary" id="next">Next →</button>
+    </div>
+    <div class="cap" id="cap"></div>
+    <div class="progress" id="dots"></div>
+  </div>
+</div>
+
+
+<script>
+(function(){
+  const APPS=[
+    {id:1, txt:'What is the world population?', hasAtt:false,
+     ans:'<span class="tok"><span class="big">≈ 8.3 billion people</span>Estimated world population in 2026 is about 8.3 billion, based on United Nations population estimates.</span>',
+     color:'var(--teal)', reqT:'Q',
+     path:'M448,170 C500,195 570,240 650,275', name:'ChatGPT / Claude'},
+    {id:2, txt:'Explain this diagram.', hasAtt:true, att:'att2',
+     ans:'<span class="tok"><span class="big">3-tier architecture</span>User → load balancer → app servers → database and cache.</span>',
+     color:'var(--amber2)', reqT:'{Q,img}',
+     path:'M952,170 C900,195 830,240 750,275', name:'Colab'},
+    {id:3, txt:'What\u2019s in this image?', hasAtt:true, att:'att3',
+     ans:'<span class="tok"><span class="big">A beautiful landscape</span>Mountains, trees, and a lake under a blue sky.</span>',
+     color:'var(--navy2)', reqT:'{img}',
+     path:'M448,470 C500,445 570,390 650,330', name:'Jira'},
+    {id:4, txt:'Summarize this video.', hasAtt:true, att:'att4',
+     ans:'<span class="tok"><span class="big">A rocket launch</span>Lift-off, ascent, and the rocket reaching the upper atmosphere.</span>',
+     color:'var(--purple)', reqT:'{vid}',
+     path:'M952,470 C900,445 830,390 750,330', name:'Notion'}
+  ];
+
+  const req=document.getElementById('req');
+  const resG=document.getElementById('resG');
+  const bsvg=document.getElementById('bsvg');
+
+  // seq: 0 intro, then per app: ask, answer  -> 1+8, then done
+  const seq=[{t:'intro'}];
+  APPS.forEach((a,i)=>{ seq.push({t:'ask',a:i},{t:'answer',a:i}); });
+  seq.push({t:'done'},{t:'model'},{t:'cats'},{t:'sizes'});
+  const MAX=seq.length-1; let step=0;
+  // ?autoplay=1 : plays end to end on its own (Back / Next still work and the clock carries on from there)
+  const AUTO=/[?&]autoplay=1/.test(location.search);
+  const DUR={intro:900, ask:1600, answer:1400, done:2400, model:1800, cats:2100, sizes:3000};
+  const SP=AUTO?0.38:1;   // when it plays on its own, every animation runs a little under twice as fast
+
+  const loopG=document.getElementById('loopG');
+  function clearFx(){
+    resG.innerHTML=''; loopG.innerHTML=''; req.setAttribute('opacity','0');
+    bsvg.classList.remove('thinking');
+    clearTimeout(window.__fire); clearInterval(window.__ty);
+  }
+  function setVisible(mode){ // 'none' | appIdx | 'all'
+    for(let i=1;i<=4;i++){
+      const show = mode==='all' || (typeof mode==='number' && APPS[mode].id===i);
+      document.getElementById('app'+i).classList.toggle('hidden0',!show);
+      document.getElementById('door'+i).classList.toggle('hidden0',!show);
+      document.getElementById('mod'+i).classList.toggle('hidden0',!show);
+      document.querySelector('.wireArr[data-k="'+i+'"]').classList.toggle('hidden0',!show);
+    }
+  }
+  function pill(color,label){
+    const g=document.createElementNS('http://www.w3.org/2000/svg','g');
+    g.innerHTML='<rect x="-15" y="-10" width="30" height="20" rx="6" fill="'+color+'" stroke="#fff" stroke-width="1.5"/>'+
+      '<text x="0" y="4" text-anchor="middle" font-size="10" font-weight="800" fill="#fff" font-family="ui-monospace,monospace">'+label+'</text>';
+    return g;
+  }
+  function finaleLoop(){
+    loopG.innerHTML='';
+    APPS.forEach((a,i)=>{
+      const q=pill(a.color,'Q');
+      let am=document.createElementNS('http://www.w3.org/2000/svg','animateMotion');
+      am.setAttribute('dur','2.6s'); am.setAttribute('begin',(i*0.65)+'s');
+      am.setAttribute('repeatCount','indefinite'); am.setAttribute('path',a.path);
+      q.appendChild(am); loopG.appendChild(q);
+      const r=pill(a.color,'A');
+      am=document.createElementNS('http://www.w3.org/2000/svg','animateMotion');
+      am.setAttribute('dur','2.6s'); am.setAttribute('begin',(i*0.65+1.3)+'s');
+      am.setAttribute('repeatCount','indefinite'); am.setAttribute('path',reverse(a.path));
+      r.appendChild(am); loopG.appendChild(r);
+    });
+  }
+  function setActive(idx){
+    for(let i=1;i<=4;i++){
+      document.getElementById('app'+i).classList.remove('active','typing');
+      document.getElementById('door'+i).classList.remove('open');
+      document.getElementById('mod'+i).classList.remove('lit');
+    }
+    document.querySelectorAll('.wireArr').forEach(w=>{w.style.opacity='.45';w.classList.remove('on');});
+    if(idx>=0){
+      const id=APPS[idx].id;
+      document.getElementById('app'+id).classList.add('active');
+      document.getElementById('mod'+id).classList.add('lit');
+    }
+  }
+  function typeInto(idx){
+    const a=APPS[idx];
+    const app=document.getElementById('app'+a.id);
+    app.classList.add('typing');
+    if(a.hasAtt) app.classList.add('hasfile');
+    const el=document.querySelector('#typed'+a.id+' .txt');
+    el.textContent=''; let i=0;
+    clearInterval(window.__ty);
+    window.__ty=setInterval(()=>{ el.textContent=a.txt.slice(0,i++); if(i>a.txt.length) clearInterval(window.__ty); },32*SP);
+  }
+  function fireReq(idx){
+    const a=APPS[idx];
+    document.getElementById('door'+a.id).classList.add('open');
+    const w=document.querySelector('.wireArr[data-k="'+a.id+'"]');
+    w.style.opacity='1'; w.classList.add('on');
+    document.getElementById('reqT').textContent=a.reqT;
+    req.querySelector('rect').setAttribute('fill', a.color);
+    req.querySelectorAll('animateMotion').forEach(x=>x.remove());
+    window.__fire=setTimeout(()=>{
+      const am=document.createElementNS('http://www.w3.org/2000/svg','animateMotion');
+      am.setAttribute('dur',(1.2*SP)+'s'); am.setAttribute('path',a.path); am.setAttribute('fill','freeze'); am.setAttribute('begin','indefinite');
+      req.appendChild(am); req.setAttribute('opacity','1'); am.beginElement();
+      setTimeout(()=>bsvg.classList.add('thinking'), 1100*SP);
+    }, (a.txt.length*32+280)*SP);
+  }
+  function reverse(d){
+    const pts=d.replace(/[MC]/g,' ').trim().split(/\s+/).map(p=>p.split(',').map(Number)).filter(p=>p.length===2);
+    let s='M'+pts[pts.length-1].join(',');
+    for(let i=pts.length-2;i>=0;i--) s+=' L'+pts[i].join(',');
+    return s;
+  }
+  function streamResp(idx){
+    const a=APPS[idx];
+    bsvg.classList.remove('thinking');
+    req.setAttribute('opacity','0');
+    document.getElementById('door'+a.id).classList.add('open');
+    resG.innerHTML='';
+    const rev=reverse(a.path);
+    const ap=pill(a.color,'A');
+    let aam=document.createElementNS('http://www.w3.org/2000/svg','animateMotion');
+    aam.setAttribute('dur',(1.3*SP)+'s'); aam.setAttribute('path',rev); aam.setAttribute('fill','freeze'); aam.setAttribute('begin','indefinite');
+    ap.appendChild(aam); ap.setAttribute('opacity','1'); resG.appendChild(ap); aam.beginElement();
+    setTimeout(()=>ap.setAttribute('opacity','0'), 1500*SP);
+    for(let k=0;k<5;k++){
+      const r=document.createElementNS('http://www.w3.org/2000/svg','rect');
+      r.setAttribute('width',9);r.setAttribute('height',9);r.setAttribute('rx',2);r.setAttribute('fill',a.color);
+      const am=document.createElementNS('http://www.w3.org/2000/svg','animateMotion');
+      am.setAttribute('dur',(1.3*SP)+'s');am.setAttribute('begin',((0.35+k*0.24)*SP)+'s');am.setAttribute('path',rev);am.setAttribute('fill','freeze');
+      r.appendChild(am);resG.appendChild(r);
+    }
+    setTimeout(()=>{
+      document.getElementById('ans'+a.id).innerHTML=a.ans;
+      document.getElementById('app'+a.id).classList.add('answered');
+    }, 1550*SP);
+  }
+  function restoreUpTo(){
+    APPS.forEach((a,i)=>{
+      const app=document.getElementById('app'+a.id);
+      const askI=seq.findIndex(x=>x.t==='ask'&&x.a===i);
+      const ansI=seq.findIndex(x=>x.t==='answer'&&x.a===i);
+      const el=document.querySelector('#typed'+a.id+' .txt');
+      if(askI<=step){ el.textContent=a.txt; if(a.hasAtt) app.classList.add('hasfile'); }
+      else { el.textContent=''; app.classList.remove('hasfile'); }
+      if(ansI<=step){
+        document.getElementById('ans'+a.id).innerHTML=a.ans;
+        app.classList.add('answered');
+      } else {
+        document.getElementById('ans'+a.id).innerHTML='';
+        app.classList.remove('answered');
+      }
+    });
+  }
+  function render(){
+    clearFx();
+    var _board=document.getElementById('board'); _board.classList.remove('ext-on','ext-cats','ext-sizes');
+    
+    const s=seq[step];
+    const nx=document.getElementById('next');
+    restoreUpTo();
+    if(s.t==='intro'){
+      setActive(-1); setVisible('none');
+      nx.dataset.cap='the genie behind every app';
+    } else if(s.t==='ask'){
+      setActive(s.a); setVisible(s.a);
+      const a=APPS[s.a];
+      document.getElementById('ans'+a.id).innerHTML='';
+      document.getElementById('app'+a.id).classList.remove('answered');
+      typeInto(s.a); fireReq(s.a);
+      nx.dataset.cap='the genie answers';
+    } else if(s.t==='answer'){
+      setActive(s.a); setVisible(s.a);
+      streamResp(s.a);
+      nx.dataset.cap = s.a<3 ? ('knock on '+APPS[s.a+1].name+'\u2019s door') : 'all four doors at once';
+    } else if(s.t==='model' || s.t==='cats'){
+      setActive(-1); setVisible('none');
+      _board.classList.add('ext-on');
+      if(s.t==='cats') _board.classList.add('ext-cats');
+      nx.dataset.cap = (s.t==='model') ? 'both take four kinds of data' : 'many genie sizes';
+    } else if(s.t==='sizes'){
+      setActive(-1); setVisible('none');
+      _board.classList.add('ext-sizes');
+      nx.dataset.cap='';
+    } else {
+      setActive(-1); setVisible('all'); finaleLoop();
+      for(let i=1;i<=4;i++){
+        document.getElementById('mod'+i).classList.add('lit');
+        document.getElementById('door'+i).classList.add('open');
+      }
+      document.querySelectorAll('.wireArr').forEach(w=>w.style.opacity='.85');
+      nx.dataset.cap='the genie has a name';
+    }
+    document.getElementById('back').disabled = step===0;
+    nx.disabled = step===MAX;
+    document.getElementById('cap').innerHTML = (step<MAX && nx.dataset.cap) ? '<span>next</span> '+nx.dataset.cap : (step===MAX ? 'end of this session preview' : '');
+    document.getElementById('stepc').textContent = 'STEP '+(step+1)+' / '+(MAX+1);
+    document.getElementById('dots').innerHTML = seq.map((_,i)=>'<span class="dot'+(i===step?' on':i<step?' done':'')+'"></span>').join('');
+    try{ parent.postMessage({deck:'step',step:step,max:MAX},'*'); }catch(e){}
+    clearTimeout(window.__auto);
+    if (AUTO && step<MAX) window.__auto=setTimeout(next, (DUR[s.t]||3500));
+  }
+  function next(){ if(step<MAX){ step++; render(); } }
+  function back(){ if(step>0){ step--; render(); } }
+  function jumpTo(appIdx){
+    step=seq.findIndex(x=>x.t==='ask'&&x.a===appIdx); render();
+  }
+  document.getElementById('next').addEventListener('click', next);
+  document.getElementById('back').addEventListener('click', back);
+  window.addEventListener('keydown',e=>{
+    if(e.key==='Enter'||e.key===' '||e.key==='ArrowRight'){ e.preventDefault(); next(); }
+    else if(e.key==='ArrowLeft'){ e.preventDefault(); back(); }
+    else if(e.key==='r'||e.key==='R'){ step=0; render(); }
+    else if(e.key==='Escape'){ try{ parent.postMessage({deck:'close'},'*'); }catch(_){} }
+  });
+
+  // wires: each arrow leaves the card's inner edge and lands just in front of its door, whatever the card's height or the screen size
+  const DOOR={1:{x:445,y:212,dir:1},2:{x:955,y:212,dir:-1},3:{x:445,y:420,dir:1},4:{x:955,y:420,dir:-1}};
+  function layoutWires(){
+    const m=bsvg.getScreenCTM(); if(!m) return; const inv=m.inverse(), pt=bsvg.createSVGPoint();
+    const toSvg=(x,y)=>{pt.x=x;pt.y=y;const p=pt.matrixTransform(inv);return p;};
+    for(let k=1;k<=4;k++){
+      const card=document.getElementById('app'+k), w=document.querySelector('.wireArr[data-k="'+k+'"]'); if(!card||!w) continue;
+      const r=card.getBoundingClientRect(), d=DOOR[k];
+      const a=toSvg(d.dir>0?r.right:r.left, r.top), b=toSvg(d.dir>0?r.right:r.left, r.bottom);
+      // one style everywhere: drop out of the card's bottom edge (top edge for the lower cards), sweep, and hook into the door's near corner
+      const top=(k<=2), sx=a.x-34*d.dir, sy=top ? b.y+3 : a.y-3;
+      const ex=d.x, ey=top ? 246 : 386, v=top ? 1 : -1;
+      const c1y=(top ? Math.max(sy,ey) : Math.min(sy,ey))+30*v;
+      const p='M'+sx.toFixed(1)+','+sy.toFixed(1)+' C'+sx.toFixed(1)+','+c1y.toFixed(1)+' '+(ex-36*d.dir).toFixed(1)+','+(ey+16*v)+' '+ex+','+ey;
+      w.setAttribute('d',p);
+    }
+  }
+  setInterval(layoutWires,120); addEventListener('resize',layoutWires);
+  render(); layoutWires();
+})();
+</script>
+
+<script>
+(function(){ const cv=document.getElementById('cv');
+  function fit(){ const H=document.documentElement.classList.contains('auto')?690:740; const k=Math.min(innerWidth/1460, innerHeight/H)*(document.documentElement.classList.contains('embed')?1:0.95); cv.style.transform='translate(-50%,-50%) scale('+k+')'; }
+  addEventListener('resize',fit); fit(); })();
+</script>
+</body></html>
