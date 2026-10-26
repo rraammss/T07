@@ -1431,7 +1431,7 @@ const COACH = () => ROOM.d + GAP;
 const RING = b => b.tracks.length * SESSIONS;
 const gIdx = (j, s) => j * SESSIONS + s;
 const fromG = (b, n) => { const N = RING(b); n = ((n % N) + N) % N; return {n, j: Math.floor(n / SESSIONS), s: n % SESSIONS}; };
-function ringRoom(b, n, zoff) { const p = fromG(b, n), r = buildRoom(b, p.j, p.s, {front: 'link', back: 'link', zoff}); r.n = p.n; r.j = p.j; return r; }
+function ringRoom(b, n, zoff, front = 'link') { const p = fromG(b, n), r = buildRoom(b, p.j, p.s, {front, back: 'link', zoff}); r.n = p.n; r.j = p.j; return r; }
 function buildRing(b, n) {   // the room you stand in, the one behind, and two ahead, joined by gangways
   return [-1, 0, 1, 2].map(k => ringRoom(b, n + k, -k * COACH()));
 }
@@ -1452,7 +1452,14 @@ function buildHex(b, n0) {   // the whole path from outside: one closed polygon 
   const T = b.tracks.length, P = COACH(), M = 6, L = SESSIONS * P + 2 * M, Rc = L / (2 * Math.sin(Math.PI / T)), SC = 0.25;
   const G = new THREE.Group(), {w, h, d} = ROOM;
   const V = k => { const a = -Math.PI / 2 - Math.PI / T + k * TAU / T; return new THREE.Vector3(Rc * Math.cos(a), 0, Rc * Math.sin(a)); };
-  const boxG = new THREE.BoxGeometry(w, h, d), edgeG = new THREE.EdgesGeometry(boxG), gangG = new THREE.BoxGeometry(HW * 1.2, HH, GAP + 0.2);
+  const boxG = new THREE.BoxGeometry(w + 0.14, h + 0.14, d + 0.06), edgeG = new THREE.EdgesGeometry(boxG), gangG = new THREE.BoxGeometry(HW * 1.2, HH, GAP + 0.2);
+  const col = new THREE.Color(b.col), lineCol = col.clone().offsetHSL(0, 0.05, 0.12);
+  const shellM = new THREE.MeshStandardMaterial({color: 0x0c1528, roughness: 0.85}), outM = new THREE.LineBasicMaterial({color: lineCol});
+  const ribM = new THREE.LineBasicMaterial({color: col, transparent: true, opacity: 0.5}), hereM = new THREE.LineBasicMaterial({color: new THREE.Color('#fff2c4')});
+  const RB = []; for (let z = -d / 2 + 0.3; z < d / 2; z += 0.32) RB.push(-w / 2 - 0.08, -h / 2 + 0.05, z, -w / 2 - 0.08, h / 2 - 0.05, z, w / 2 + 0.08, -h / 2 + 0.05, z, w / 2 + 0.08, h / 2 - 0.05, z);
+  for (let y = -h / 2 + h / 12; y < h / 2; y += h / 12) RB.push(-w / 2, y, d / 2 + 0.05, w / 2, y, d / 2 + 0.05);   // the roll-up door's slats
+  const ribG = new THREE.BufferGeometry(); ribG.setAttribute('position', new THREE.Float32BufferAttribute(RB, 3));
+  const gangM = new THREE.MeshStandardMaterial({color: 0x0a1222, roughness: 0.9});
   const slots = [];
   let here = null;
   for (let k = 0; k < T; k++) {
@@ -1460,18 +1467,19 @@ function buildHex(b, n0) {   // the whole path from outside: one closed polygon 
     const tc = new THREE.Color(b.col).offsetHSL(0, 0, k % 2 ? 0.14 : -0.04);
     for (let m = 0; m < SESSIONS; m++) {
       const n = k * SESSIONS + m, c = a.clone().add(u.clone().multiplyScalar(M + (m + 0.5) * P)), on = n === n0;
-      const box = new THREE.Mesh(boxG, new THREE.MeshBasicMaterial({color: (on ? new THREE.Color('#7a5a1c') : new THREE.Color('#0d1730')).convertSRGBToLinear()}));
+      const box = new THREE.Mesh(boxG, shellM);
       box.position.set(c.x, h / 2, c.z); box.rotation.y = th; G.add(box);
-      const e = new THREE.LineSegments(edgeG, new THREE.LineBasicMaterial({color: on ? new THREE.Color('#fff2c4') : tc})); e.position.copy(box.position); e.rotation.y = th; G.add(e);
+      const e = new THREE.LineSegments(edgeG, on ? hereM : outM); e.position.copy(box.position); e.rotation.y = th; G.add(e);
+      const rb = new THREE.LineSegments(ribG, ribM); rb.position.copy(box.position); rb.rotation.y = th; G.add(rb);
       slots.push({c, th, box});
       if (on) here = {c, th};
-      if (m < SESSIONS - 1) { const gw = new THREE.Mesh(gangG, new THREE.MeshBasicMaterial({color: tc.clone().convertSRGBToLinear().multiplyScalar(0.5)})); gw.position.set(c.x + u.x * P / 2, HH / 2, c.z + u.z * P / 2); gw.rotation.y = th; G.add(gw); }
+      if (m < SESSIONS - 1) { const gw = new THREE.Mesh(gangG, gangM); gw.position.set(c.x + u.x * P / 2, HH / 2, c.z + u.z * P / 2); gw.rotation.y = th; G.add(gw); }
     }
     // the corner: a round junction where one track turns into the next
-    const node = new THREE.Mesh(new THREE.CylinderGeometry(3.4, 3.4, h, 24), new THREE.MeshBasicMaterial({color: new THREE.Color('#132240').convertSRGBToLinear()}));
+    const node = new THREE.Mesh(new THREE.CylinderGeometry(3.4, 3.4, h, 24), shellM);
     node.position.set(a.x, h / 2, a.z); G.add(node);
-    const ring = new THREE.LineSegments(new THREE.EdgesGeometry(node.geometry, 30), new THREE.LineBasicMaterial({color: new THREE.Color(b.col)})); ring.position.copy(node.position); G.add(ring);
-    [[a, M], [z, -M]].forEach(([v, off]) => { const len = Math.abs(off) - 3.2, cg = new THREE.Mesh(new THREE.BoxGeometry(HW * 1.2, HH, len), new THREE.MeshBasicMaterial({color: tc.clone().convertSRGBToLinear().multiplyScalar(0.5)}));
+    const ring = new THREE.LineSegments(new THREE.EdgesGeometry(node.geometry, 30), outM); ring.position.copy(node.position); G.add(ring);
+    [[a, M], [z, -M]].forEach(([v, off]) => { const len = Math.abs(off) - 3.2, cg = new THREE.Mesh(new THREE.BoxGeometry(HW * 1.2, HH, len), gangM);
       const q = v.clone().add(u.clone().multiplyScalar(Math.sign(off) * (3.2 + len / 2))); cg.position.set(q.x, HH / 2, q.z); cg.rotation.y = th; G.add(cg); });
     // the track's name floats beside its side of the ring
     const mid = a.clone().add(z).multiplyScalar(0.5), out = mid.clone().normalize();
@@ -1545,24 +1553,49 @@ async function openSession(b, j, s) {
   b.rowLabels.forEach(L => show(L, false));
   blk.material.emissiveIntensity = 1.8;
   await Promise.all([flyTo({tx: p.x + 0.3, ty: p.y, tz: p.z, yaw: Math.PI / 2, pitch: 0.12, dist: 1.4}, 1.0), wait(0.6).then(() => fade(1, 0.4))]);
-  const n = gIdx(j, s), rooms = buildRing(b, n), hex = buildHex(b, n);
+  SPD = 1;
+  const n = gIdx(j, s), hex = buildHex(b, n);
+  // the room you enter keeps its roll-up door; the room behind joins once you are inside
+  const rooms = [ringRoom(b, n, 0, 'door'), ringRoom(b, n + 1, -COACH()), ringRoom(b, n + 2, -2 * COACH())];
   rooms.forEach(r => r.g.visible = false);
   SES = {b, j, s, n, blk, inside: false, at: 0, th: 0, ph: 0, tour: null, moving: false, C: new THREE.Vector3(RP.x, 1.6, RP.z + ST[0].z), rooms, hex};
-  setCurrent(n);
+  Object.assign(SES, rooms[0]); SES.n = n; SES.j = j; SES.s = s;
   level = 3; ui();
-  // the whole path from space: the ring of containers turns slowly, then the camera drops to the room you picked
+  // 1 · the whole path from space: the ring of containers turns slowly
   const yaw0 = 0.6;
   Object.assign(rig, {tx: hex.center.x, ty: -2, tz: hex.center.z, yaw: yaw0, pitch: 1.0, dist: hex.R * 3.7}); drag.yaw = drag.pitch = 0;
-  await fade(0, 0.5);
-  await tween(2.4, k => { rig.yaw = yaw0 + 0.9 * k; rig.pitch = 1.0 - 0.2 * k; });
-  await flyTo({tx: RP.x, ty: ROOM.h * hex.SC * 0.5, tz: RP.z, yaw: 0.85, pitch: 0.5, dist: 6.5}, 2.0);   // down beside the room you picked, never through a corner
-  await fade(1, 0.3);
+  await fade(0, 0.8);
+  await tween(6.5, k => { rig.yaw = yaw0 + 1.3 * k; rig.pitch = 1.0 - 0.3 * k; });
+  // 2 · down to the room you picked
+  await flyTo({tx: RP.x, ty: ROOM.h * hex.SC * 0.5, tz: RP.z, yaw: 0.85, pitch: 0.45, dist: 7}, 3.0);
+  await wait(0.4);
+  await fade(1, 0.5);
   scene.remove(hex.g); hex.g.visible = false;
   rooms.forEach(r => r.g.visible = true);
-  SES.C.set(RP.x, 1.6, RP.z + ST[0].z); setFov(FOV_IN);
+  // 3 · as before: the whole container from the side, a slow swing round to its door, the door rolls up, walk in
+  SPD = 0.5;
+  Object.assign(rig, {tx: RP.x, ty: 1.7, tz: RP.z + ROOM.d * 0.15, yaw: 0.75, pitch: 0.2, dist: Math.max(17, fitDist(ROOM.d * 1.15, ROOM.h * 2.6))}); drag.yaw = drag.pitch = 0;
+  await fade(0, 0.6);
+  await wait(0.5);
+  await flyTo({tx: RP.x, ty: 1.7, tz: RP.z + ROOM.d / 2, yaw: 0, pitch: 0.08, dist: Math.max(9, fitDist(ROOM.w * 1.5, ROOM.h * 1.7))}, 3.2);
+  const NS = SES.slats.length;
+  const seamCol = new THREE.Color(SES.b.col).offsetHSL(0, 0, 0.15);
+  await tween(0.9, k => SES.slats.forEach((sl, i) => { const q = Math.max(0, Math.min(1, k * NS - i));
+    sl.e.material.color.copy(new THREE.Color(SES.b.col)).lerp(seamCol, q); sl.e.material.opacity = 0.85 + 0.15 * q; }));
+  const prog = new Array(NS).fill(0), BK = SES.backing;
+  await Promise.all(SES.slats.map((sl, i) => wait(i * 0.08).then(() => tween(0.9, k => {
+    sl.piv.rotation.x = -Math.PI / 2 * k; sl.piv.position.y = (i + 1) * (ROOM.h / NS) + (ROOM.h - (i + 1) * (ROOM.h / NS)) * k * 0.9;
+    const f = k < 0.65 ? 1 : 1 - (k - 0.65) / 0.35; sl.m.material.opacity = f; sl.e.material.opacity = f;
+    prog[i] = k; if (BK) { const open = Math.min(1, prog.reduce((a, v) => a + v, 0) / NS * 1.05);
+      BK.scale.y = Math.max(0.001, 1 - open); BK.position.y = ROOM.h - ROOM.h * BK.scale.y / 2; }
+    SES.doorGlow.intensity = 1.2 * Math.max(SES.doorGlow.intensity / 1.2, k); }))));
+  SES.slats.forEach(sl => sl.piv.visible = false); if (BK) BK.visible = false;
+  await Promise.all([flyTo({tx: RP.x, ty: 1.6, tz: RP.z + ST[0].z - 3, yaw: 0, pitch: 0, dist: 3}, 1.6), tween(1.6, k => setFov(lerp(FOV_OUT, FOV_IN, k)))]);
+  tween(1.5, k => { SES.doorGlow.intensity = 1.2 * (1 - k); });
   SPD = 1;
-  SES.inside = true; ui();
-  await fade(0, 0.35);
+  rooms.unshift(ringRoom(b, n - 1, COACH()));   // now the ring closes behind you: walk back and you reach the previous room
+  setCurrent(n);
+  SES.inside = true;
   busy = false; ui();
   tourRoom();
 }
