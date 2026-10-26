@@ -1449,14 +1449,14 @@ function spriteText(lines, col, w, h) {   // a label that always faces you, for 
   const sp = new THREE.Sprite(new THREE.SpriteMaterial({map: t, transparent: true, depthWrite: false, toneMapped: false})); sp.scale.set(w, h, 1); return sp;
 }
 function buildHex(b, n0) {   // the whole path from outside: one closed polygon of containers floating in space
-  const T = b.tracks.length, P = COACH(), M = 6, L = SESSIONS * P + 2 * M, Rc = L / (2 * Math.sin(Math.PI / T)), SC = 0.25;
-  const G = new THREE.Group(), {w, h, d} = ROOM;
+  const T = b.tracks.length, P = COACH(), M = 10, F = 2.3, L = SESSIONS * P + 2 * M, Rc = L / (2 * Math.sin(Math.PI / T)), SC = 0.25;
+  const G = new THREE.Group(), w = ROOM.w * F, h = ROOM.h * F, d = ROOM.d;
   const V = k => { const a = -Math.PI / 2 - Math.PI / T + k * TAU / T; return new THREE.Vector3(Rc * Math.cos(a), 0, Rc * Math.sin(a)); };
-  const boxG = new THREE.BoxGeometry(w + 0.14, h + 0.14, d + 0.06), edgeG = new THREE.EdgesGeometry(boxG), gangG = new THREE.BoxGeometry(HW * 1.2, HH, GAP + 0.2);
+  const boxG = new THREE.BoxGeometry(w + 0.14, h + 0.14, d + 0.06), edgeG = new THREE.EdgesGeometry(boxG), gangG = new THREE.BoxGeometry(HW * 1.2 * F, HH * F, GAP + 0.2);
   const col = new THREE.Color(b.col), lineCol = col.clone().offsetHSL(0, 0.05, 0.12);
   const shellM = new THREE.MeshStandardMaterial({color: 0x0c1528, roughness: 0.85}), outM = new THREE.LineBasicMaterial({color: lineCol});
   const ribM = new THREE.LineBasicMaterial({color: col, transparent: true, opacity: 0.5}), hereM = new THREE.LineBasicMaterial({color: new THREE.Color('#fff2c4')});
-  const RB = []; for (let z = -d / 2 + 0.3; z < d / 2; z += 0.32) RB.push(-w / 2 - 0.08, -h / 2 + 0.05, z, -w / 2 - 0.08, h / 2 - 0.05, z, w / 2 + 0.08, -h / 2 + 0.05, z, w / 2 + 0.08, h / 2 - 0.05, z);
+  const RB = []; for (let z = -d / 2 + 0.3; z < d / 2; z += 0.5) RB.push(-w / 2 - 0.08, -h / 2 + 0.05, z, -w / 2 - 0.08, h / 2 - 0.05, z, w / 2 + 0.08, -h / 2 + 0.05, z, w / 2 + 0.08, h / 2 - 0.05, z);
   for (let y = -h / 2 + h / 12; y < h / 2; y += h / 12) RB.push(-w / 2, y, d / 2 + 0.05, w / 2, y, d / 2 + 0.05);   // the roll-up door's slats
   const ribG = new THREE.BufferGeometry(); ribG.setAttribute('position', new THREE.Float32BufferAttribute(RB, 3));
   const gangM = new THREE.MeshStandardMaterial({color: 0x0a1222, roughness: 0.9});
@@ -1473,18 +1473,18 @@ function buildHex(b, n0) {   // the whole path from outside: one closed polygon 
       const rb = new THREE.LineSegments(ribG, ribM); rb.position.copy(box.position); rb.rotation.y = th; G.add(rb);
       slots.push({c, th, box});
       if (on) here = {c, th};
-      if (m < SESSIONS - 1) { const gw = new THREE.Mesh(gangG, gangM); gw.position.set(c.x + u.x * P / 2, HH / 2, c.z + u.z * P / 2); gw.rotation.y = th; G.add(gw); }
+      if (m < SESSIONS - 1) { const gw = new THREE.Mesh(gangG, gangM); gw.position.set(c.x + u.x * P / 2, HH * F / 2, c.z + u.z * P / 2); gw.rotation.y = th; G.add(gw); }
     }
     // the corner: a round junction where one track turns into the next
-    const node = new THREE.Mesh(new THREE.CylinderGeometry(3.4, 3.4, h, 24), shellM);
+    const node = new THREE.Mesh(new THREE.CylinderGeometry(7, 7, h, 28), shellM);
     node.position.set(a.x, h / 2, a.z); G.add(node);
     const ring = new THREE.LineSegments(new THREE.EdgesGeometry(node.geometry, 30), outM); ring.position.copy(node.position); G.add(ring);
-    [[a, M], [z, -M]].forEach(([v, off]) => { const len = Math.abs(off) - 3.2, cg = new THREE.Mesh(new THREE.BoxGeometry(HW * 1.2, HH, len), gangM);
-      const q = v.clone().add(u.clone().multiplyScalar(Math.sign(off) * (3.2 + len / 2))); cg.position.set(q.x, HH / 2, q.z); cg.rotation.y = th; G.add(cg); });
+    [[a, M], [z, -M]].forEach(([v, off]) => { const len = Math.abs(off) - 6.8, cg = new THREE.Mesh(new THREE.BoxGeometry(HW * 1.2 * F, HH * F, len), gangM);
+      const q = v.clone().add(u.clone().multiplyScalar(Math.sign(off) * (6.8 + len / 2))); cg.position.set(q.x, HH * F / 2, q.z); cg.rotation.y = th; G.add(cg); });
     // the track's name floats beside its side of the ring
     const mid = a.clone().add(z).multiplyScalar(0.5), out = mid.clone().normalize();
     const lb = spriteText([[`TRACK ${k + 1}`, '600 70px "JetBrains Mono", ui-monospace, monospace', b.col, 90], [b.tracks[k][0], '600 92px "IBM Plex Sans", system-ui, sans-serif', '#ffffff', 200]], b.col, 52, 13);
-    lb.position.set(mid.x + out.x * 16, 14, mid.z + out.z * 16); G.add(lb);
+    lb.position.set(mid.x + out.x * 26, 22, mid.z + out.z * 26); G.add(lb);
   }
   const st = slots[0], sp = spriteText([['START', '700 120px "JetBrains Mono", ui-monospace, monospace', '#ffd98a', 140]], '#ffd98a', 22, 5.5);
   sp.position.set(st.c.x, h + 8, st.c.z); G.add(sp);
@@ -1563,11 +1563,11 @@ async function openSession(b, j, s) {
   level = 3; ui();
   // 1 · the whole path from space: the ring of containers turns slowly
   const yaw0 = 0.6;
-  Object.assign(rig, {tx: hex.center.x, ty: -2, tz: hex.center.z, yaw: yaw0, pitch: 1.0, dist: hex.R * 3.7}); drag.yaw = drag.pitch = 0;
+  Object.assign(rig, {tx: hex.center.x, ty: -4, tz: hex.center.z, yaw: yaw0, pitch: 1.05, dist: hex.R * 3.7}); drag.yaw = drag.pitch = 0;
   await fade(0, 0.8);
   await tween(6.5, k => { rig.yaw = yaw0 + 1.3 * k; rig.pitch = 1.0 - 0.3 * k; });
   // 2 · down to the room you picked
-  await flyTo({tx: RP.x, ty: ROOM.h * hex.SC * 0.5, tz: RP.z, yaw: 0.85, pitch: 0.45, dist: 7}, 3.0);
+  await flyTo({tx: RP.x, ty: ROOM.h * 2.3 * hex.SC * 0.5, tz: RP.z, yaw: 0.85, pitch: 0.45, dist: 9}, 3.0);
   await wait(0.4);
   await fade(1, 0.5);
   scene.remove(hex.g); hex.g.visible = false;
