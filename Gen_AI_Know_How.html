@@ -171,6 +171,18 @@ html,body{height:100%;margin:0;background:radial-gradient(120% 75% at 50% 24%,#0
 
 #copy{position:fixed;left:10px;bottom:6px;z-index:3;font:500 10px/1.3 "JetBrains Mono",ui-monospace,monospace;color:#9aa8bf;opacity:.55;pointer-events:none;max-width:46vw}
 @media (max-width:700px){#copy{font-size:8px;max-width:none;left:auto;right:10px;bottom:auto;top:46px;text-align:right}}
+.neon{position:fixed;top:50%;transform:translateY(-50%);z-index:4;width:84px;height:84px;border-radius:50%;cursor:pointer;display:grid;place-items:center;
+ color:#5dffc0;background:rgba(3,22,18,.55);border:2.5px solid #5dffc0;box-shadow:0 0 16px #2dffa8,0 0 38px rgba(45,255,168,.55),inset 0 0 14px rgba(45,255,168,.45);
+ animation:neonPulse 1.6s ease-in-out infinite;padding:0}
+.neon svg{width:44px;height:44px;filter:drop-shadow(0 0 6px #5dffc0) drop-shadow(0 0 14px #2dffa8)}
+.neon::after{content:attr(data-l);position:absolute;top:96px;left:50%;transform:translateX(-50%);white-space:nowrap;font:600 12px/1 var(--mono);letter-spacing:.18em;color:#9fffd8;text-shadow:0 0 8px #2dffa8}
+.neon:hover{background:rgba(12,60,46,.7);box-shadow:0 0 24px #2dffa8,0 0 60px rgba(45,255,168,.8),inset 0 0 18px rgba(45,255,168,.6)}
+.neon:active{transform:translateY(-50%) scale(.94)}
+#arrPrev{left:22px}#arrNext{right:22px}
+.neon[hidden]{display:none}
+@keyframes neonPulse{0%,100%{box-shadow:0 0 14px #2dffa8,0 0 30px rgba(45,255,168,.45),inset 0 0 12px rgba(45,255,168,.4)}50%{box-shadow:0 0 24px #2dffa8,0 0 64px rgba(45,255,168,.85),inset 0 0 18px rgba(45,255,168,.6)}}
+@media (max-width:700px){.neon{width:62px;height:62px}.neon svg{width:32px;height:32px}.neon::after{top:72px;font-size:10px}#arrPrev{left:10px}#arrNext{right:10px}}
+@media (prefers-reduced-motion:reduce){.neon{animation:none}}
 </style>
 
 </head><body>
@@ -188,10 +200,12 @@ html,body{height:100%;margin:0;background:radial-gradient(120% 75% at 50% 24%,#0
 <div class="ui" id="nav" hidden>
   <button class="btn" id="bBack" type="button">‹ Back</button>
   <div class="ui" id="strip" hidden></div>
-  <span id="wallBtns" hidden><button class="btn" type="button" data-v="skip">Next session ›</button> <button class="btn" type="button" data-v="-1">‹ Step back</button> <button class="btn" type="button" data-v="1">Walk on ›</button> <button class="btn leave" type="button" data-v="exit">Leave the container<span class="kb"> · E</span></button></span>
+  <span id="wallBtns" hidden><button class="btn" type="button" data-v="skip">Next room ›</button> <button class="btn" type="button" data-v="-1">‹ Step back</button> <button class="btn" type="button" data-v="1">Walk on ›</button> <button class="btn leave" type="button" data-v="exit">Leave the path<span class="kb"> · Esc</span></button></span>
   <button class="btn" id="bNext" type="button">Next path ›</button>
 </div>
 <div id="fade" aria-hidden="true"></div>
+<button class="neon" id="arrPrev" type="button" hidden data-l="◀ PREVIOUS" aria-label="Previous room"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M15 4 7 12l8 8"/></svg></button>
+<button class="neon" id="arrNext" type="button" hidden data-l="NEXT ▶" aria-label="Next room"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M9 4l8 8-8 8"/></svg></button>
 <div id="copy">© 2026 BigOhAcademy · Ramalingam Vijayakumaran Nair · All rights reserved</div>
 <div id="nogl" hidden>
   <div class="fb">
@@ -1248,7 +1262,10 @@ function buildRoom(b, j, s, opt = {}) {
     const dc = document.createElement('canvas'); dc.width = 1024; dc.height = 1400; const dg = dc.getContext('2d');
     dg.textAlign = 'center'; dg.shadowColor = b.col; dg.shadowBlur = 30;
     dg.fillStyle = b.col; dg.font = '500 92px "JetBrains Mono", ui-monospace, monospace'; dg.letterSpacing = '14px';
-    dg.fillText('ENTER', 512, 520); dg.fillText('NEXT SESSION', 512, 660);   // the door just invites you on; the next room names itself
+    dg.fillText('NEXT', 512, 470); dg.fillText('ROOM  →', 512, 600);   // the door just invites you on
+    if (s === SESSIONS - 1) {   // a corner of the ring: the next room starts the next track
+      const nj = (j + 1) % b.tracks.length; dg.shadowBlur = 14; dg.letterSpacing = '6px'; dg.font = '500 50px "JetBrains Mono", ui-monospace, monospace'; dg.fillText(`TRACK ${nj + 1}`, 512, 730);
+      dg.letterSpacing = '0px'; dg.fillStyle = '#eef3fa'; dg.font = '500 56px "IBM Plex Sans", system-ui, sans-serif'; wrapText(dg, b.tracks[nj][0], 880).slice(0, 2).forEach((l, i) => dg.fillText(l, 512, 810 + i * 66)); dg.fillStyle = b.col; }
     dg.shadowBlur = 24; dg.font = '500 58px "JetBrains Mono", ui-monospace, monospace'; dg.letterSpacing = '8px';
     dg.fillText('↑  W  ·  WALK ON', 512, 1000);
     const dt = new THREE.CanvasTexture(dc); dt.encoding = THREE.sRGBEncoding;
@@ -1309,10 +1326,10 @@ function buildRoom(b, j, s, opt = {}) {
   const handsOn = [];
   const boards = [[0, -1, PAIRS[0]], [1, 1, PAIRS[0]], [2, -1, PAIRS[1]], [3, 1, PAIRS[1]], [4, -1, PAIRS[2]], [5, 1, PAIRS[2]], [6, -1, 0]].map(([i, side, z]) => {   // six frames in facing pairs, then the games machine
     if (i === 6) return arcade(g, b, j, s, det, side, z);   // the live demo: a games machine in the corner
-    const wc = b.col, body = i >= 2 ? 'Another preview video for this session is coming up. The full story is taught live.' : det ? det[i][1] : 'Content for this session arrives with the path page.';   // every board in the bundle's colour
-    const step = `${i + 1}  ·  ${i === 0 ? 'THE PROBLEM' : i === 1 ? 'THE ARCHITECTURE' : 'PREVIEW VIDEO COMING UP'}`, FW = 3.0;   // frame width: a dark gap between frames
+    const wc = b.col, body = 'A preview video for this board is coming soon. The full story is taught live.';   // every board in the bundle's colour
+    const step = `${i + 1}  ·  PREVIEW VIDEO COMING SOON`, FW = 3.0;   // frame width: a dark gap between frames
     const skey = `${b.i}-${j}-${s}`, dk = deckAt(skey, i + 1);
-    const m = new THREE.Mesh(new THREE.PlaneGeometry(FW, FW * 1.8 / 3.3), new THREE.MeshBasicMaterial({map: dk ? posterTex(dk, wc) : panelTex(step, wc, body, !det), toneMapped: false}));
+    const m = new THREE.Mesh(new THREE.PlaneGeometry(FW, FW * 1.8 / 3.3), new THREE.MeshBasicMaterial({map: dk ? posterTex(dk, wc) : panelTex(step, wc, body, false), toneMapped: false}));
     if (dk) m.userData.deck = `${skey}|${i}`;
     if (dk && dk.caption) {   // the title above the video: what this film explains
       const cap = new THREE.Mesh(new THREE.PlaneGeometry(FW, 0.33), new THREE.MeshBasicMaterial({map: arcTex(2048, 224, (gg, W, H) => {
@@ -1328,7 +1345,7 @@ function buildRoom(b, j, s, opt = {}) {
     return m;
   });
   // the session name hangs from the roof near the door
-  const tm = new THREE.Mesh(new THREE.PlaneGeometry(3.6, 0.98), new THREE.MeshBasicMaterial({map: titleTex(`SESSION ${s + 1}  ·  ${b.name.toUpperCase()}`, b.col, b.tracks[j][0]), transparent: true, toneMapped: false}));
+  const tm = new THREE.Mesh(new THREE.PlaneGeometry(3.6, 0.98), new THREE.MeshBasicMaterial({map: titleTex(`ROOM ${gIdx(j, s) + 1} OF ${RING(b)}  ·  TRACK ${j + 1}`, b.col, b.tracks[j][0]), transparent: true, toneMapped: false}));
   tm.material.side = THREE.FrontSide; tm.position.set(0, 2.62, 2.2); g.add(tm);   // mid-corridor, between the first two boards
   [-1.5, 1.5].forEach(x => { const wire = new THREE.Mesh(new THREE.BoxGeometry(0.008, h - 3.11, 0.008), new THREE.MeshBasicMaterial({color: col})); wire.position.set(x, (h + 3.11) / 2, 2.2); g.add(wire); });
   const tmb = new THREE.Mesh(tm.geometry, tm.material); tmb.position.copy(tm.position); tmb.rotation.y = Math.PI; g.add(tmb);   // a second face: reads the right way from behind too
@@ -1405,98 +1422,147 @@ async function walk(dir) {
   SES.tour = null;
   if (!(await settle())) return;
   const n = SES.at + dir;
-  if (n >= ST.length) { if (SES.s < SESSIONS - 1) nextCoach(); else exitSession(true); }
-  else if (n < 0) exitSession(false);
+  if (n >= ST.length) shiftRoom(1);
+  else if (n < 0) shiftRoom(-1);
   else goTo(n);
 }
 const COACH = () => ROOM.d + GAP;
-function buildTrain(b, j, s) {   // this session's coach, plus up to two coaches ahead, joined by gangways
-  const rooms = [];
-  for (let k = 0; k < 3 && s + k < SESSIONS; k++)
-    rooms.push(buildRoom(b, j, s + k, {front: k === 0 ? 'door' : 'link', back: s + k < SESSIONS - 1 ? 'link' : 'exit', zoff: -k * COACH()}));
-  return rooms;
+// the path is one closed ring: every track is one side of a polygon (six tracks: a hexagon), five rooms a side, no dead end
+const RING = b => b.tracks.length * SESSIONS;
+const gIdx = (j, s) => j * SESSIONS + s;
+const fromG = (b, n) => { const N = RING(b); n = ((n % N) + N) % N; return {n, j: Math.floor(n / SESSIONS), s: n % SESSIONS}; };
+function ringRoom(b, n, zoff) { const p = fromG(b, n), r = buildRoom(b, p.j, p.s, {front: 'link', back: 'link', zoff}); r.n = p.n; r.j = p.j; return r; }
+function buildRing(b, n) {   // the room you stand in, the one behind, and two ahead, joined by gangways
+  return [-1, 0, 1, 2].map(k => ringRoom(b, n + k, -k * COACH()));
+}
+function setCurrent(n) {   // which room of the ring you are in now
+  const p = fromG(SES.b, n), r = SES.rooms[1];
+  Object.assign(SES, r); SES.n = p.n; SES.j = p.j; SES.s = p.s;
+  if (SES.blk) SES.blk.material.emissiveIntensity = 0.45;
+  const row = SES.b.rows[p.j]; SES.blk = row && row.userData.blocks[p.s] || SES.blk; if (SES.blk) SES.blk.material.emissiveIntensity = 1.8;
+}
+function spriteText(lines, col, w, h) {   // a label that always faces you, for the ring seen from space
+  const c = document.createElement('canvas'); c.width = 1024; c.height = Math.round(1024 * h / w); const g = c.getContext('2d');
+  g.textAlign = 'center'; g.shadowColor = col; g.shadowBlur = 18;
+  lines.forEach(([t, font, fill, y]) => { g.font = font; g.fillStyle = fill; g.fillText(t, 512, y); });
+  const t = new THREE.CanvasTexture(c); t.encoding = THREE.sRGBEncoding;
+  const sp = new THREE.Sprite(new THREE.SpriteMaterial({map: t, transparent: true, depthWrite: false, toneMapped: false})); sp.scale.set(w, h, 1); return sp;
+}
+function buildHex(b, n0) {   // the whole path from outside: one closed polygon of containers floating in space
+  const T = b.tracks.length, P = COACH(), M = 6, L = SESSIONS * P + 2 * M, Rc = L / (2 * Math.sin(Math.PI / T)), SC = 0.25;
+  const G = new THREE.Group(), {w, h, d} = ROOM;
+  const V = k => { const a = -Math.PI / 2 - Math.PI / T + k * TAU / T; return new THREE.Vector3(Rc * Math.cos(a), 0, Rc * Math.sin(a)); };
+  const boxG = new THREE.BoxGeometry(w, h, d), edgeG = new THREE.EdgesGeometry(boxG), gangG = new THREE.BoxGeometry(HW * 1.2, HH, GAP + 0.2);
+  const slots = [];
+  let here = null;
+  for (let k = 0; k < T; k++) {
+    const a = V(k), z = V(k + 1), u = z.clone().sub(a).normalize(), th = Math.atan2(-u.x, -u.z);
+    const tc = new THREE.Color(b.col).offsetHSL(0, 0, k % 2 ? 0.14 : -0.04);
+    for (let m = 0; m < SESSIONS; m++) {
+      const n = k * SESSIONS + m, c = a.clone().add(u.clone().multiplyScalar(M + (m + 0.5) * P)), on = n === n0;
+      const box = new THREE.Mesh(boxG, new THREE.MeshBasicMaterial({color: (on ? new THREE.Color('#7a5a1c') : new THREE.Color('#0d1730')).convertSRGBToLinear()}));
+      box.position.set(c.x, h / 2, c.z); box.rotation.y = th; G.add(box);
+      const e = new THREE.LineSegments(edgeG, new THREE.LineBasicMaterial({color: on ? new THREE.Color('#fff2c4') : tc})); e.position.copy(box.position); e.rotation.y = th; G.add(e);
+      slots.push({c, th, box});
+      if (on) here = {c, th};
+      if (m < SESSIONS - 1) { const gw = new THREE.Mesh(gangG, new THREE.MeshBasicMaterial({color: tc.clone().convertSRGBToLinear().multiplyScalar(0.5)})); gw.position.set(c.x + u.x * P / 2, HH / 2, c.z + u.z * P / 2); gw.rotation.y = th; G.add(gw); }
+    }
+    // the corner: a round junction where one track turns into the next
+    const node = new THREE.Mesh(new THREE.CylinderGeometry(3.4, 3.4, h, 24), new THREE.MeshBasicMaterial({color: new THREE.Color('#132240').convertSRGBToLinear()}));
+    node.position.set(a.x, h / 2, a.z); G.add(node);
+    const ring = new THREE.LineSegments(new THREE.EdgesGeometry(node.geometry, 30), new THREE.LineBasicMaterial({color: new THREE.Color(b.col)})); ring.position.copy(node.position); G.add(ring);
+    [[a, M], [z, -M]].forEach(([v, off]) => { const len = Math.abs(off) - 3.2, cg = new THREE.Mesh(new THREE.BoxGeometry(HW * 1.2, HH, len), new THREE.MeshBasicMaterial({color: tc.clone().convertSRGBToLinear().multiplyScalar(0.5)}));
+      const q = v.clone().add(u.clone().multiplyScalar(Math.sign(off) * (3.2 + len / 2))); cg.position.set(q.x, HH / 2, q.z); cg.rotation.y = th; G.add(cg); });
+    // the track's name floats beside its side of the ring
+    const mid = a.clone().add(z).multiplyScalar(0.5), out = mid.clone().normalize();
+    const lb = spriteText([[`TRACK ${k + 1}`, '600 70px "JetBrains Mono", ui-monospace, monospace', b.col, 90], [b.tracks[k][0], '600 92px "IBM Plex Sans", system-ui, sans-serif', '#ffffff', 200]], b.col, 52, 13);
+    lb.position.set(mid.x + out.x * 16, 14, mid.z + out.z * 16); G.add(lb);
+  }
+  const st = slots[0], sp = spriteText([['START', '700 120px "JetBrains Mono", ui-monospace, monospace', '#ffd98a', 140]], '#ffd98a', 22, 5.5);
+  sp.position.set(st.c.x, h + 8, st.c.z); G.add(sp);
+  const ct = spriteText([[`PATH ${b.n}`, '600 90px "JetBrains Mono", ui-monospace, monospace', b.col, 110], [b.name, '600 104px "IBM Plex Sans", system-ui, sans-serif', '#ffffff', 240]], b.col, 60, 17.5);
+  ct.position.set(0, 10, 0); G.add(ct);
+  // fit: the room you are entering sits exactly where its full-size inside is built
+  const phi = -here.th; G.scale.setScalar(SC); G.rotation.y = phi;
+  const cw = here.c.clone().applyAxisAngle(new THREE.Vector3(0, 1, 0), phi).multiplyScalar(SC);
+  G.position.set(RP.x - cw.x, 0, RP.z - cw.z); scene.add(G); G.updateMatrixWorld(true);
+  const center = new THREE.Vector3(); G.localToWorld(center);
+  return {g: G, center, R: Rc * SC, SC};
+}
+async function shiftRoom(dir) {   // walk through a gangway: forward (clockwise) or back (anticlockwise), round and round
+  closeDeck();
+  if (!SES || SES.moving || busy) return;
+  SES.tour = null; SES.moving = true; busy = true;
+  const a = SES.th, t = nearTh(dir > 0 ? 0 : Math.PI), p = SES.ph;
+  await tween(0.22, k => { SES.th = lerp(a, t, k); SES.ph = lerp(p, 0, k); });
+  const z0 = SES.C.z, z1 = dir > 0 ? RP.z - COACH() + ST[0].z : RP.z + COACH() + ST[ST.length - 1].z;
+  await tween(Math.max(0.5, Math.abs(z1 - z0) * 0.1), k => { SES.C.z = lerp(z0, z1, k); });
+  if (dir > 0) {
+    disposeRoom(SES.rooms.shift()); SES.rooms.forEach(r => r.g.position.z += COACH()); SES.C.z += COACH();
+    SES.rooms.push(ringRoom(SES.b, SES.n + 3, -2 * COACH()));
+  } else {
+    disposeRoom(SES.rooms.pop()); SES.rooms.forEach(r => r.g.position.z -= COACH()); SES.C.z -= COACH();
+    SES.rooms.unshift(ringRoom(SES.b, SES.n - 2, COACH()));
+  }
+  setCurrent(SES.n + dir);
+  SES.at = dir > 0 ? 0 : ST.length - 1;
+  SES.moving = false; busy = false; ui();
+  if (dir > 0) tourRoom();
+}
+const nextCoach = () => shiftRoom(1);
+async function teleport(n) {   // any room of the ring, through a quick fade
+  busy = true; SES.tour = null; SES.moving = true;
+  await fade(1, 0.3);
+  SES.rooms.forEach(disposeRoom);
+  SES.rooms = buildRing(SES.b, n); setCurrent(n);
+  SES.C.set(RP.x, 1.6, RP.z + ST[0].z); SES.th = 0; SES.ph = 0; SES.at = 0; setFov(FOV_IN); ui();
+  await fade(0, 0.3);
+  SES.moving = false; busy = false; ui();
+  tourRoom();
 }
 function disposeRoom(r) { scene.remove(r.g); r.g.traverse(o => { if (o.material) [].concat(o.material).forEach(mt => { if (mt.map && mt.map !== dotTex) mt.map.dispose(); mt.dispose(); }); if (o.geometry) o.geometry.dispose(); }); }
-async function skipToDoor() {   // straight to the connecting hatch; from there, into the next session
+async function skipToDoor() {   // straight to the connecting hatch; from there, into the next room
   closeDeck();
   if (!SES || !SES.inside) return;
   SES.tour = null;
   if (!(await settle())) return;
-  if (SES.at === ST.length - 1) { if (SES.s < SESSIONS - 1) nextCoach(); return; }
+  if (SES.at === ST.length - 1) { shiftRoom(1); return; }
   await goTo(ST.length - 1);
 }
-async function jumpTo(n) {   // any session, in about a second: rush down the train, arrive at its entrance
+async function jumpTo(n) {   // a room of the current track, by its number 1–5
   closeDeck();
   if (!SES || !SES.inside || n < 0 || n >= SESSIONS) return;
   SES.tour = null;
   if (!(await settle())) return;
   if (n === SES.s) { goTo(0); return; }
-  busy = true; SES.tour = null; SES.moving = true;
-  const z0 = SES.C.z, dir = n > SES.s ? -1 : 1, a = SES.th, t = nearTh(dir < 0 ? 0 : Math.PI);
-  await tween(0.2, k => { SES.th = lerp(a, t, k); SES.ph = lerp(SES.ph, 0, k); });
-  await Promise.all([tween(0.55, k => { SES.C.z = z0 + dir * 9 * k * k; }), tween(0.55, k => setFov(lerp(FOV_IN, FOV_IN + 14, k))), wait(0.25).then(() => fade(1, 0.3))]);
-  SES.rooms.forEach(disposeRoom);
-  SES.blk.material.emissiveIntensity = 0.45; SES.s = n; SES.blk = SES.b.rows[SES.j].userData.blocks[n]; SES.blk.material.emissiveIntensity = 1.8;
-  SES.rooms = buildTrain(SES.b, SES.j, n); Object.assign(SES, SES.rooms[0]);
-  SES.slats.forEach(sl => sl.piv.visible = false); if (SES.backing) SES.backing.visible = false;
-  SES.C.z = RP.z + ST[0].z; SES.th = 0; SES.ph = 0; SES.at = 0; setFov(FOV_IN); ui();
-  await fade(0, 0.3);
-  SES.moving = false; busy = false; ui();
-  tourRoom();
-}
-async function nextCoach() {   // walk through the gangway into the next session
-  closeDeck();
-  if (!SES || SES.moving || busy) return;
-  SES.tour = null; SES.moving = true; busy = true;
-  const a = SES.th, t = nearTh(0), p = SES.ph;
-  await tween(0.25, k => { SES.th = lerp(a, t, k); SES.ph = lerp(p, 0, k); });
-  const z0 = SES.C.z, z1 = RP.z - COACH() + ST[0].z;
-  await tween(Math.abs(z1 - z0) * 0.11, k => { SES.C.z = lerp(z0, z1, k); });
-  // re-base: the coach behind goes, the train shifts back, a new coach joins at the end
-  disposeRoom(SES.rooms.shift());
-  SES.rooms.forEach(r => r.g.position.z += COACH()); SES.C.z += COACH();
-  SES.s += 1; SES.blk.material.emissiveIntensity = 0.45; SES.blk = SES.b.rows[SES.j].userData.blocks[SES.s]; SES.blk.material.emissiveIntensity = 1.8;
-  const ns = SES.s + SES.rooms.length;
-  if (ns < SESSIONS) SES.rooms.push(buildRoom(SES.b, SES.j, ns, {front: 'link', back: ns < SESSIONS - 1 ? 'link' : 'exit', zoff: -SES.rooms.length * COACH()}));
-  Object.assign(SES, SES.rooms[0]);
-  SES.at = 0; SES.moving = false; busy = false; ui();
-  tourRoom();
+  teleport(gIdx(SES.j, n));
 }
 async function openSession(b, j, s) {
-  SPD = 0.5;   // the container swings round and the door opens about twice as fast
+  SPD = 0.6;
   hideHint(true);
   busy = true; setHover(null);
   const blk = b.rows[j].userData.blocks[s], p = new THREE.Vector3(); blk.getWorldPosition(p);
   b.rowLabels.forEach(L => show(L, false));
   blk.material.emissiveIntensity = 1.8;
-  await Promise.all([flyTo({tx: p.x + 0.3, ty: p.y, tz: p.z, yaw: Math.PI / 2, pitch: 0.12, dist: 1.4}, 1.1), wait(0.7).then(() => fade(1, 0.4))]);
-  const rooms = buildTrain(b, j, s);
-  SES = {b, j, s, blk, inside: false, at: 0, th: 0, ph: 0, tour: null, moving: false, C: new THREE.Vector3(RP.x, 1.6, RP.z + ST[0].z), rooms, ...rooms[0]};
+  await Promise.all([flyTo({tx: p.x + 0.3, ty: p.y, tz: p.z, yaw: Math.PI / 2, pitch: 0.12, dist: 1.4}, 1.0), wait(0.6).then(() => fade(1, 0.4))]);
+  const n = gIdx(j, s), rooms = buildRing(b, n), hex = buildHex(b, n);
+  rooms.forEach(r => r.g.visible = false);
+  SES = {b, j, s, n, blk, inside: false, at: 0, th: 0, ph: 0, tour: null, moving: false, C: new THREE.Vector3(RP.x, 1.6, RP.z + ST[0].z), rooms, hex};
+  setCurrent(n);
   level = 3; ui();
-  // the whole container from the side, then a slow swing round to its front door; far enough back on a narrow phone too
-  Object.assign(rig, {tx: RP.x, ty: 1.7, tz: RP.z + ROOM.d * 0.15, yaw: 0.75, pitch: 0.2, dist: Math.max(17, fitDist(ROOM.d * 1.15, ROOM.h * 2.6))}); drag.yaw = drag.pitch = 0;
-  await fade(0, 0.6);
-  await wait(0.5);
-  await flyTo({tx: RP.x, ty: 1.7, tz: RP.z + ROOM.d / 2, yaw: 0, pitch: 0.08, dist: Math.max(9, fitDist(ROOM.w * 1.5, ROOM.h * 1.7))}, 3.2);
-  // the door: a line of light climbs the slats, then they fold open one by one, bottom first
-  const NS = SES.slats.length;
-  // the light climbs the seams only (no washed-out slats), then each slat folds up, bottom first, solid until it is lying flat up top
-  const seamCol = new THREE.Color(SES.b.col).offsetHSL(0, 0, 0.15);
-  await tween(0.9, k => SES.slats.forEach((sl, i) => { const q = Math.max(0, Math.min(1, k * NS - i));
-    sl.e.material.color.copy(new THREE.Color(SES.b.col)).lerp(seamCol, q); sl.e.material.opacity = 0.85 + 0.15 * q; }));
-  const prog = new Array(NS).fill(0), BK = SES.backing;
-  await Promise.all(SES.slats.map((sl, i) => wait(i * 0.08).then(() => tween(0.9, k => {
-    sl.piv.rotation.x = -Math.PI / 2 * k; sl.piv.position.y = (i + 1) * (ROOM.h / NS) + (ROOM.h - (i + 1) * (ROOM.h / NS)) * k * 0.9;
-    const f = k < 0.65 ? 1 : 1 - (k - 0.65) / 0.35; sl.m.material.opacity = f; sl.e.material.opacity = f;
-    prog[i] = k; if (BK) { const open = Math.min(1, prog.reduce((a, v) => a + v, 0) / NS * 1.05);   // the backing shrinks upward as the door opens
-      BK.scale.y = Math.max(0.001, 1 - open); BK.position.y = ROOM.h - ROOM.h * BK.scale.y / 2; }
-    SES.doorGlow.intensity = 1.2 * Math.max(SES.doorGlow.intensity / 1.2, k); }))));
-  SES.slats.forEach(sl => sl.piv.visible = false); if (BK) BK.visible = false;
-  // walk through the doorway to the first spot
-  await Promise.all([flyTo({tx: RP.x, ty: 1.6, tz: RP.z + ST[0].z - 3, yaw: 0, pitch: 0, dist: 3}, 1.6), tween(1.6, k => setFov(lerp(FOV_OUT, FOV_IN, k)))]);
-  tween(1.5, k => { SES.doorGlow.intensity = 1.2 * (1 - k); });
+  // the whole path from space: the ring of containers turns slowly, then the camera drops to the room you picked
+  const yaw0 = 0.6;
+  Object.assign(rig, {tx: hex.center.x, ty: -2, tz: hex.center.z, yaw: yaw0, pitch: 1.0, dist: hex.R * 3.7}); drag.yaw = drag.pitch = 0;
+  await fade(0, 0.5);
+  await tween(2.4, k => { rig.yaw = yaw0 + 0.9 * k; rig.pitch = 1.0 - 0.2 * k; });
+  await flyTo({tx: RP.x, ty: ROOM.h * hex.SC * 0.5, tz: RP.z, yaw: 0.85, pitch: 0.5, dist: 6.5}, 2.0);   // down beside the room you picked, never through a corner
+  await fade(1, 0.3);
+  scene.remove(hex.g); hex.g.visible = false;
+  rooms.forEach(r => r.g.visible = true);
+  SES.C.set(RP.x, 1.6, RP.z + ST[0].z); setFov(FOV_IN);
   SPD = 1;
-  SES.inside = true;
+  SES.inside = true; ui();
+  await fade(0, 0.35);
   busy = false; ui();
   tourRoom();
 }
@@ -1519,6 +1585,7 @@ async function exitSession(throughBack) {
   } finally {
     SES.inside = false; setFov(FOV_OUT);
     SES.rooms.forEach(disposeRoom);
+    if (SES.hex) { scene.remove(SES.hex.g); disposeRoom({g: SES.hex.g}); }
     const p = new THREE.Vector3(); blk.getWorldPosition(p);
     Object.assign(rig, {tx: p.x + 0.3, ty: p.y, tz: p.z, yaw: Math.PI / 2, pitch: 0.12, dist: 1.4});
     blk.material.emissiveIntensity = 0.45;
@@ -1583,22 +1650,21 @@ function caption() {
   if (hover && hover.kind === 'bundle') html = `<span class="c" style="--c:${hover.b.col}">Path ${hover.b.n}</span> · <b>${esc(hover.b.name)}</b><br>${esc(hover.b.line)}`;
   else if (hover && hover.kind === 'row' && hover.s != null && cur.sessions && !cur.tiles) {
     const t = cur.tracks[hover.j];
-    html = `<span class="c" style="--c:${cur.col}">${esc(t[0])} · session ${hover.s + 1}</span> · <b>${esc(cur.sessions[hover.j][hover.s])}</b><br>Click the container to step inside`; }
-  else if (hover && hover.kind === 'row') { const t = cur.tracks[hover.j]; html = `<span class="c" style="--c:${cur.col}">Track ${hover.j + 1}</span> · <b>${esc(t[0])}</b> · ${esc(t[1])}<br>${cur.tbd ? '' : `${SESSIONS} sessions · every one a live demo or a homework${cur.tiles ? ' · click to step inside' : ''}`}`; }
+    html = `<span class="c" style="--c:${cur.col}">${esc(t[0])} · room ${gIdx(hover.j, hover.s) + 1}</span> · <b>${esc(cur.sessions[hover.j][hover.s])}</b><br>Click to step into the ring of rooms`; }
+  else if (hover && hover.kind === 'row') { const t = cur.tracks[hover.j]; html = `<span class="c" style="--c:${cur.col}">Track ${hover.j + 1}</span> · <b>${esc(t[0])}</b> · ${esc(t[1])}<br>${cur.tbd ? '' : `${SESSIONS} rooms on the ring${cur.tiles ? ' · click to step inside' : ''}`}`; }
   else if (level === 0) html = GUIDED ? '<b>Click the glowing seal on the lid to open the box</b><br>Drag to turn the box' : 'Drag to turn the box all the way round';
 
   else if (level === 1) html = '';
   else if (level === 3) {
-    const st = ST[SES.at] || ST[0], tag = `<span class="c" style="--c:${cur.col}">${esc(cur.tracks[SES.j][0])} · session ${SES.s + 1}</span>`;
-    html = !SES.inside ? tag + '<br>The door is opening…'
-      : st.name === 'entry' ? tag + '<br><b>Follow the glowing arrows</b> · walk on ↑ · skip to the next hatch ⇧↑ · jump with 1–5 · leave E'
+    const st = ST[SES.at] || ST[0], tag = `<span class="c" style="--c:${cur.col}">${esc(cur.tracks[SES.j][0])} · room ${SES.n + 1} of ${RING(cur)}</span>`;
+    html = !SES.inside ? tag + '<br>The whole path, one ring of rooms…'
+      : st.name === 'entry' ? tag + '<br><b>Follow the glowing arrows</b> · next room ▶ · previous ◀ · round and round · Esc leaves the path'
       : st.name === 'board' && deckAt(`${SES.b.i}-${SES.j}-${SES.s}`, SES.at) ? (DECK_OPEN ? `${tag} · board ${SES.at} of 6 · <b>\u25b6 playing on the board</b><br>Esc to stop · walk on ↑ and it stops` : `${tag} · board ${SES.at} of 6 · <b>\u25b6 click the board to watch: ${esc(deckAt(`${SES.b.i}-${SES.j}-${SES.s}`, SES.at).title)}</b><br>it plays on the board, on its own · walk on ↑ · leave E`)
       : st.name === 'board' && SES.at === 7 ? `${tag} · the games machine · <b>\u25b6 live demo</b><br>press START on the machine · walk on ↑ · leave E`
-      : st.name === 'board' ? `${tag} · board ${SES.at} of 6 · <b>${['the problem', 'the architecture', 'preview video coming up', 'preview video coming up', 'preview video coming up', 'preview video coming up'][SES.at - 1]}</b><br>walk on ↑ · step back ↓ · drag to look · leave E`
-      : SES.s < SESSIONS - 1 ? tag + `<br><b>Walk on through the gangway: enter next session</b> · or press E to leave`
-      : tag + '<br><b>Last session of this track</b> · walk on to leave through the exit · or press E';
+      : st.name === 'board' ? `${tag} · board ${SES.at} of 6 · <b>${['preview video coming soon', 'preview video coming soon', 'preview video coming soon', 'preview video coming soon', 'preview video coming soon', 'preview video coming soon'][SES.at - 1]}</b><br>walk on ▶ · back ◀ · drag to look · Esc leaves the path`
+      : tag + `<br><b>Walk on through the gangway into the next room</b> · ◀ to go back · Esc leaves the path`;
   }
-  else html = `<b>${esc(cur.line)}</b><br>${cur.tbd ? 'Hover a track to see what it covers' : cur.tiles ? 'Click a track to step inside' : 'Click any container to step inside that session'} · drag to look around · scroll out to step back`;
+  else html = `<b>${esc(cur.line)}</b><br>${cur.tbd ? 'Hover a track to see what it covers' : cur.tiles ? 'Click a track to step inside' : 'Click any container to step into the ring'} · drag to look around · scroll out to step back`;
   if (TOUCH && html) html = html.replace(/scroll out to close the box/g, 'pinch to zoom · tap Gen SI above to close the box')
     .replace(/scroll out to step back/g, 'pinch to zoom · ‹ Back to step back').replace(/\bClick/g, 'Tap').replace(/\bclick/g, 'tap');
   CAP.innerHTML = html;
@@ -1613,7 +1679,7 @@ function ui() {
   const parts = [['Gen SI — Know how', 0]];
   if (level >= 1) parts.push(['Paths', 1]);
   if (level >= 2 && cur) parts.push([`Path ${cur.n} · ${cur.name}`, 2]);
-  if (level === 3) parts.push([`${cur.tracks[SES.j][0]} · session ${SES.s + 1}`, 3]);
+  if (level === 3) parts.push([`${cur.tracks[SES.j][0]} · room ${SES.n + 1} of ${RING(cur)}`, 3]);
   CR.innerHTML = parts.map(([t, l], i) => (i ? '<i>›</i>' : '') + `<button type="button" data-l="${l}" class="${l === level ? 'cur' : ''}">${esc(t)}</button>`).join('');
   CR.querySelectorAll('button').forEach(bt => bt.onclick = () => goLevel(+bt.dataset.l));
   NAV.hidden = level < 2; document.getElementById('bNext').hidden = level !== 2;
@@ -1622,11 +1688,11 @@ function ui() {
   if (level === 3 && SES) {
     STR.style.setProperty('--c', SES.b.col);
     STR.innerHTML = `<span class="tn">${esc(SES.b.tracks[SES.j][0])}</span>` + [0, 1, 2, 3, 4].map(n => (n ? '<i class="ln"></i>' : '') +
-      `<button type="button" data-n="${n}" class="${n === SES.s ? 'on' : ''}" aria-label="Session ${n + 1}">${n + 1}<span class="tip">${esc(SES.b.sessions[SES.j][n])}</span></button>`).join('');
+      `<button type="button" data-n="${n}" class="${n === SES.s ? 'on' : ''}" aria-label="Room ${gIdx(SES.j, n) + 1}">${n + 1}<span class="tip">${esc(SES.b.sessions[SES.j][n])}</span></button>`).join('');
     STR.querySelectorAll('button').forEach(bt => bt.onclick = () => jumpTo(+bt.dataset.n));
-    WB.querySelector('[data-v="skip"]').hidden = SES.s >= SESSIONS - 1;
   }
   document.getElementById('bBack').hidden = level === 3;
+  document.getElementById('arrPrev').hidden = document.getElementById('arrNext').hidden = !(level === 3 && SES && SES.inside);
   if (cur) { const nb = OPEN[(OPEN.indexOf(cur) + 1) % OPEN.length], bn = document.getElementById('bNext'); bn.textContent = `Path ${nb.n} ›`; bn.style.setProperty('--c', nb.col); }
   caption();
 }
@@ -1637,6 +1703,8 @@ async function goLevel(l) {
   if (l === 0 && level === 1) await closeCase();
 }
 document.getElementById('bBack').onclick = back;
+document.getElementById('arrPrev').onclick = () => walk(-1);
+document.getElementById('arrNext').onclick = () => walk(1);
 document.querySelectorAll('#wallBtns button').forEach(bt => bt.onclick = () => bt.dataset.v === 'exit' ? exitSession(false) : bt.dataset.v === 'skip' ? skipToDoor() : walk(+bt.dataset.v));
 document.getElementById('bNext').onclick = () => { if (!busy && level === 2) nextBundle(); };
 document.getElementById('bright').onclick = e => {
