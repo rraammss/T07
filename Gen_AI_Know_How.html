@@ -72,9 +72,8 @@ html,body{height:100%;margin:0;background:radial-gradient(120% 75% at 50% 24%,#0
 #bright{pointer-events:auto}
 #top #bAgenda{pointer-events:auto}
 .agbtn{margin-left:auto;pointer-events:auto}
-#top #bAgenda{font-weight:700;font-size:11.5px;letter-spacing:.14em;text-transform:uppercase;color:#04140c;background:#3dffa8;border:1px solid #9dffd2;border-radius:999px;padding:8px 15px;box-shadow:0 0 12px rgba(61,255,168,.75),0 0 30px rgba(61,255,168,.35);animation:agGlow 2.4s ease-in-out infinite}
-#top #bAgenda:hover,#top #bAgenda:focus-visible{background:#7dffc4;outline:none}
-@keyframes agGlow{50%{box-shadow:0 0 18px rgba(61,255,168,.95),0 0 44px rgba(61,255,168,.5)}}
+#top #bAgenda{font-weight:700;font-size:11.5px;letter-spacing:.14em;text-transform:uppercase;color:#062016;background:#5fd6a0;border:1px solid #7fe3b8;border-radius:999px;padding:8px 15px;box-shadow:none}
+#top #bAgenda:hover,#top #bAgenda:focus-visible{background:#78e3b3;outline:none}
 #classAg .lvl{margin:0 36px 16px 0;padding:10px 14px;border:1.5px solid #ff4fd8;border-radius:10px;background:rgba(40,6,34,.6);color:#ffd6f6;font-size:14px;line-height:1.5;box-shadow:0 0 14px rgba(255,79,216,.35)}
 #classAg .lvl b{color:#ff6ae0;letter-spacing:.12em;font:700 12px var(--mono);text-shadow:0 0 8px rgba(255,79,216,.7);margin-right:6px}
 @media (prefers-reduced-motion:reduce){#top #bAgenda{animation:none}}
@@ -220,6 +219,16 @@ html,body{height:100%;margin:0;background:radial-gradient(120% 75% at 50% 24%,#0
 @media (max-width:700px){.neon{width:40px;height:40px;margin:0 8px}.neon::before{inset:-6px;border-radius:10px}.neon svg{width:20px;height:20px}}
 @media (prefers-reduced-motion:reduce){.neon{animation:none}}
 /* compact nav icons */
+@media (max-width:700px),(hover:none){
+  #wallBtns .neon{animation:none;box-shadow:0 0 5px rgba(45,255,168,.35)}
+  #wallBtns .neon.skip{box-shadow:0 0 5px rgba(43,200,255,.35)}
+  #wallBtns .neon svg,#wallBtns .neon.skip svg{filter:drop-shadow(0 0 2px currentColor)}
+  #wallBtns .neon::before{box-shadow:0 0 4px rgba(45,255,168,.3)}
+  #wallBtns .neon.skip::before{box-shadow:0 0 4px rgba(43,200,255,.3)}
+  #wallBtns .exitb{box-shadow:0 0 5px rgba(255,74,61,.4)}
+  #wallBtns .exitb svg{filter:drop-shadow(0 0 2px #ff4a3d)}
+  #wallBtns .exitb::before{box-shadow:0 0 4px rgba(255,74,61,.3)}
+}
 .neon,#wallBtns .exitb{width:32px;height:32px;margin:0 7px;border-width:2px}
 .neon svg,#wallBtns .exitb svg{width:17px;height:17px}
 .neon::before,#wallBtns .exitb::before{inset:-5px;border-radius:9px}
@@ -1270,18 +1279,18 @@ function buildRoom(b, j, s, opt = {}) {
   const flat = (W, H, color, x, y, z, ry = 0, rx = 0) => { const m = new THREE.Mesh(new THREE.PlaneGeometry(W, H), new THREE.MeshBasicMaterial({color: new THREE.Color(color).convertSRGBToLinear(), side: THREE.DoubleSide})); m.position.set(x, y, z); m.rotation.set(rx, ry, 0); g.add(m); return m; };
   const lines = (arr, color, op) => { const lg = new THREE.BufferGeometry(); lg.setAttribute('position', new THREE.Float32BufferAttribute(arr, 3)); const l = new THREE.LineSegments(lg, new THREE.LineBasicMaterial({color, transparent: true, opacity: op})); g.add(l); return l; };
   flat(w, d, 0x09111f, 0, 0, 0, 0, -Math.PI / 2);                 // floor
-  {   // once per room, painted on the floor just ahead of where you land: this is a preview of the class
+  if (gIdx(j, s, b) % 4 === 0) {   // room 1 and every 4th room after it: a quiet floor note that this is a preview of the class
     const c = document.createElement('canvas'); c.width = 2048; c.height = 560; const x = c.getContext('2d');
-    x.textAlign = 'center'; x.textBaseline = 'middle'; x.lineWidth = 6; x.strokeStyle = 'rgba(61,255,168,0.55)';
-    x.shadowColor = '#3dffa8'; x.shadowBlur = 28;
+    x.textAlign = 'center'; x.textBaseline = 'middle'; x.lineWidth = 4; x.strokeStyle = 'rgba(140,220,190,0.35)';
+    x.shadowBlur = 0;
     const rr = (X, Y, W, H, R) => { x.beginPath(); x.moveTo(X + R, Y); x.arcTo(X + W, Y, X + W, Y + H, R); x.arcTo(X + W, Y + H, X, Y + H, R); x.arcTo(X, Y + H, X, Y, R); x.arcTo(X, Y, X + W, Y, R); x.closePath(); };
     rr(40, 30, 1968, 500, 60); x.stroke();
-    x.fillStyle = '#7dffc4'; x.font = '700 150px "IBM Plex Mono",ui-monospace,Menlo,monospace';
+    x.fillStyle = 'rgba(170,230,205,0.78)'; x.font = '600 150px "IBM Plex Mono",ui-monospace,Menlo,monospace';
     x.fillText("A PREVIEW OF WHAT'S", 1024, 165); x.fillText('TAUGHT IN CLASS', 1024, 315);
-    x.shadowBlur = 16; x.fillStyle = 'rgba(200,255,228,0.9)'; x.font = '500 92px "IBM Plex Sans",system-ui,sans-serif';
+    x.shadowBlur = 0; x.fillStyle = 'rgba(190,215,225,0.7)'; x.font = '500 92px "IBM Plex Sans",system-ui,sans-serif';
     x.fillText('the full story is taught live', 1024, 450);
     const t = new THREE.CanvasTexture(c); t.encoding = THREE.sRGBEncoding; t.anisotropy = renderer.capabilities.getMaxAnisotropy();
-    const fw = 2.1, mark = new THREE.Mesh(new THREE.PlaneGeometry(fw, fw * 0.62), new THREE.MeshBasicMaterial({map: t, transparent: true, opacity: 0.85, depthWrite: false, toneMapped: false}));
+    const fw = 2.1, mark = new THREE.Mesh(new THREE.PlaneGeometry(fw, fw * 0.62), new THREE.MeshBasicMaterial({map: t, transparent: true, opacity: 0.7, depthWrite: false, toneMapped: false}));
     mark.rotation.x = -Math.PI / 2; mark.position.set(0, 0.006, d / 2 - 5.6); g.add(mark);
   }
   const roof = flat(w, d, 0xffffff, 0, h, 0, 0, Math.PI / 2);   // the roof is a night sky
