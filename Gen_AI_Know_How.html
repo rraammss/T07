@@ -75,7 +75,6 @@ html,body{height:100%;margin:0;background:radial-gradient(120% 75% at 50% 24%,#0
 #top #bAgenda{font-weight:700;font-size:11.5px;letter-spacing:.14em;text-transform:uppercase;color:#04140c;background:#3dffa8;border:1px solid #9dffd2;border-radius:999px;padding:8px 15px;box-shadow:0 0 12px rgba(61,255,168,.75),0 0 30px rgba(61,255,168,.35);animation:agGlow 2.4s ease-in-out infinite}
 #top #bAgenda:hover,#top #bAgenda:focus-visible{background:#7dffc4;outline:none}
 @keyframes agGlow{50%{box-shadow:0 0 18px rgba(61,255,168,.95),0 0 44px rgba(61,255,168,.5)}}
-#level{flex:none;font-size:10.5px;font-weight:700;letter-spacing:.16em;color:#ff6ae0;border:1.5px solid #ff4fd8;border-radius:999px;padding:4px 11px;text-shadow:0 0 8px rgba(255,79,216,.8);box-shadow:0 0 12px rgba(255,79,216,.55),inset 0 0 8px rgba(255,79,216,.25);background:rgba(40,6,34,.55)}
 #classAg .lvl{margin:0 36px 16px 0;padding:10px 14px;border:1.5px solid #ff4fd8;border-radius:10px;background:rgba(40,6,34,.6);color:#ffd6f6;font-size:14px;line-height:1.5;box-shadow:0 0 14px rgba(255,79,216,.35)}
 #classAg .lvl b{color:#ff6ae0;letter-spacing:.12em;font:700 12px var(--mono);text-shadow:0 0 8px rgba(255,79,216,.7);margin-right:6px}
 @media (prefers-reduced-motion:reduce){#top #bAgenda{animation:none}}
@@ -175,7 +174,6 @@ html,body{height:100%;margin:0;background:radial-gradient(120% 75% at 50% 24%,#0
   #top{flex-wrap:nowrap;gap:10px;padding-top:calc(10px + env(safe-area-inset-top,0px));background:linear-gradient(#060a14 55%,rgba(6,10,20,0))}
   #brand{display:none}
   #agenda{font-size:0;padding:5px 9px}#agenda::before{content:"AGENDA";font-size:9.5px;letter-spacing:.14em}
-  #level{font-size:0;padding:4px 9px}#level::before{content:"BASICS";font-size:9.5px;letter-spacing:.14em}
   #top #bAgenda{font-size:0;padding:7px 11px}#top #bAgenda::before{content:"What's taught";font-size:10px;letter-spacing:.1em}
   #classic{font-size:0;padding:7px 10px;flex:none}#classic::before{content:"← Classic";font-size:11px}
   #crumbs{flex:1;flex-wrap:nowrap;overflow:hidden;font-size:11px;gap:6px}
@@ -221,6 +219,11 @@ html,body{height:100%;margin:0;background:radial-gradient(120% 75% at 50% 24%,#0
 @keyframes neonPulse{0%,100%{box-shadow:0 0 14px #2dffa8,0 0 30px rgba(45,255,168,.45),inset 0 0 12px rgba(45,255,168,.4)}50%{box-shadow:0 0 24px #2dffa8,0 0 64px rgba(45,255,168,.85),inset 0 0 18px rgba(45,255,168,.6)}}
 @media (max-width:700px){.neon{width:40px;height:40px;margin:0 8px}.neon::before{inset:-6px;border-radius:10px}.neon svg{width:20px;height:20px}}
 @media (prefers-reduced-motion:reduce){.neon{animation:none}}
+/* compact nav icons */
+.neon,#wallBtns .exitb{width:32px;height:32px;margin:0 7px;border-width:2px}
+.neon svg,#wallBtns .exitb svg{width:17px;height:17px}
+.neon::before,#wallBtns .exitb::before{inset:-5px;border-radius:9px}
+@media (max-width:700px){.neon,#wallBtns .exitb{width:30px;height:30px;margin:0 6px}.neon svg,#wallBtns .exitb svg{width:16px;height:16px}.neon::before,#wallBtns .exitb::before{inset:-5px;border-radius:8px}}
 </style>
 
 </head><body>
@@ -229,7 +232,6 @@ html,body{height:100%;margin:0;background:radial-gradient(120% 75% at 50% 24%,#0
 <div class="ui" id="top">
   <span id="agenda">COURSE AGENDA</span>
   <span id="brand">BIGOHACADEMY · T07</span>
-  <span id="level" title="Basic training — the core ideas, clearly explained. Not a deep dive.">BASIC TRAINING · NOT A DEEP DIVE</span>
   <nav id="crumbs" aria-label="Where you are"></nav>
   <button class="btn agbtn" id="bAgenda" type="button">What's taught in class</button>
 </div>
@@ -1279,8 +1281,8 @@ function buildRoom(b, j, s, opt = {}) {
     x.shadowBlur = 16; x.fillStyle = 'rgba(200,255,228,0.9)'; x.font = '500 92px "IBM Plex Sans",system-ui,sans-serif';
     x.fillText('the full story is taught live', 1024, 450);
     const t = new THREE.CanvasTexture(c); t.encoding = THREE.sRGBEncoding; t.anisotropy = renderer.capabilities.getMaxAnisotropy();
-    const fw = Math.min(3.4, w - 1.2), mark = new THREE.Mesh(new THREE.PlaneGeometry(fw, fw * 0.62), new THREE.MeshBasicMaterial({map: t, transparent: true, opacity: 0.85, depthWrite: false, toneMapped: false}));
-    mark.rotation.x = -Math.PI / 2; mark.position.set(0, 0.006, d / 2 - 6.4); g.add(mark);
+    const fw = 2.1, mark = new THREE.Mesh(new THREE.PlaneGeometry(fw, fw * 0.62), new THREE.MeshBasicMaterial({map: t, transparent: true, opacity: 0.85, depthWrite: false, toneMapped: false}));
+    mark.rotation.x = -Math.PI / 2; mark.position.set(0, 0.006, d / 2 - 5.6); g.add(mark);
   }
   const roof = flat(w, d, 0xffffff, 0, h, 0, 0, Math.PI / 2);   // the roof is a night sky
   roof.material.map = (() => { const c = document.createElement('canvas'); c.width = 768; c.height = 2304; const x = c.getContext('2d');
@@ -1417,9 +1419,9 @@ function buildRoom(b, j, s, opt = {}) {
     return m;
   });
   // the session name hangs from the roof near the door
-  const tm = new THREE.Mesh(new THREE.PlaneGeometry(3.6, 0.98), new THREE.MeshBasicMaterial({map: titleTex(`ROOM ${gIdx(j, s, b) + 1} OF ${RING(b)}  ·  TRACK ${j + 1}`, b.col, sTitle), transparent: true, toneMapped: false}));
-  tm.material.side = THREE.FrontSide; tm.position.set(0, 2.62, 2.2); g.add(tm);   // mid-corridor, between the first two boards
-  [-1.5, 1.5].forEach(x => { const wire = new THREE.Mesh(new THREE.BoxGeometry(0.008, h - 3.11, 0.008), new THREE.MeshBasicMaterial({color: col})); wire.position.set(x, (h + 3.11) / 2, 2.2); g.add(wire); });
+  const tm = new THREE.Mesh(new THREE.PlaneGeometry(3.06, 0.833), new THREE.MeshBasicMaterial({map: titleTex(`ROOM ${gIdx(j, s, b) + 1} OF ${RING(b)}  ·  TRACK ${j + 1}`, b.col, sTitle), transparent: true, toneMapped: false}));
+  tm.material.side = THREE.FrontSide; tm.position.set(0, 2.69, 2.2); g.add(tm);   // mid-corridor, between the first two boards
+  [-1.28, 1.28].forEach(x => { const wire = new THREE.Mesh(new THREE.BoxGeometry(0.008, h - 3.11, 0.008), new THREE.MeshBasicMaterial({color: col})); wire.position.set(x, (h + 3.11) / 2, 2.2); g.add(wire); });
   const tmb = new THREE.Mesh(tm.geometry, tm.material); tmb.position.copy(tm.position); tmb.rotation.y = Math.PI; g.add(tmb);   // a second face: reads the right way from behind too
   const arrows = [];   // no arrows on the floor: the ring runs both ways
   const pl = new THREE.PointLight(0xfff0d8, 0.5, 18); pl.position.set(0, h - 0.3, 0); g.add(pl);
