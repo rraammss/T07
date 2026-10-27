@@ -71,7 +71,14 @@ html,body{height:100%;margin:0;background:radial-gradient(120% 75% at 50% 24%,#0
 #crumbs i{color:#3b4862;font-style:normal}
 #bright{pointer-events:auto}
 #top #bAgenda{pointer-events:auto}
-.agbtn{margin-left:auto;pointer-events:auto;color:#ffe2a6;border-color:#c99a4a;box-shadow:0 0 10px rgba(255,200,110,.3)}
+.agbtn{margin-left:auto;pointer-events:auto}
+#top #bAgenda{font-weight:700;font-size:11.5px;letter-spacing:.14em;text-transform:uppercase;color:#04140c;background:#3dffa8;border:1px solid #9dffd2;border-radius:999px;padding:8px 15px;box-shadow:0 0 12px rgba(61,255,168,.75),0 0 30px rgba(61,255,168,.35);animation:agGlow 2.4s ease-in-out infinite}
+#top #bAgenda:hover,#top #bAgenda:focus-visible{background:#7dffc4;outline:none}
+@keyframes agGlow{50%{box-shadow:0 0 18px rgba(61,255,168,.95),0 0 44px rgba(61,255,168,.5)}}
+#level{flex:none;font-size:10.5px;font-weight:700;letter-spacing:.16em;color:#ff6ae0;border:1.5px solid #ff4fd8;border-radius:999px;padding:4px 11px;text-shadow:0 0 8px rgba(255,79,216,.8);box-shadow:0 0 12px rgba(255,79,216,.55),inset 0 0 8px rgba(255,79,216,.25);background:rgba(40,6,34,.55)}
+#classAg .lvl{margin:0 36px 16px 0;padding:10px 14px;border:1.5px solid #ff4fd8;border-radius:10px;background:rgba(40,6,34,.6);color:#ffd6f6;font-size:14px;line-height:1.5;box-shadow:0 0 14px rgba(255,79,216,.35)}
+#classAg .lvl b{color:#ff6ae0;letter-spacing:.12em;font:700 12px var(--mono);text-shadow:0 0 8px rgba(255,79,216,.7);margin-right:6px}
+@media (prefers-reduced-motion:reduce){#top #bAgenda{animation:none}}
 #classAg{position:fixed;inset:0;z-index:20;background:rgba(3,6,14,.72);display:grid;place-items:center;padding:20px}
 #classAg[hidden]{display:none}
 #classAg .card{width:min(860px,100%);max-height:84vh;overflow:auto;background:#0a1222;border:1px solid #2c3a54;border-radius:16px;padding:22px 26px;color:#dbe6f6;font-family:"IBM Plex Sans",system-ui,sans-serif;position:relative}
@@ -168,6 +175,8 @@ html,body{height:100%;margin:0;background:radial-gradient(120% 75% at 50% 24%,#0
   #top{flex-wrap:nowrap;gap:10px;padding-top:calc(10px + env(safe-area-inset-top,0px));background:linear-gradient(#060a14 55%,rgba(6,10,20,0))}
   #brand{display:none}
   #agenda{font-size:0;padding:5px 9px}#agenda::before{content:"AGENDA";font-size:9.5px;letter-spacing:.14em}
+  #level{font-size:0;padding:4px 9px}#level::before{content:"BASICS";font-size:9.5px;letter-spacing:.14em}
+  #top #bAgenda{font-size:0;padding:7px 11px}#top #bAgenda::before{content:"What's taught";font-size:10px;letter-spacing:.1em}
   #classic{font-size:0;padding:7px 10px;flex:none}#classic::before{content:"← Classic";font-size:11px}
   #crumbs{flex:1;flex-wrap:nowrap;overflow:hidden;font-size:11px;gap:6px}
   #crumbs>*{flex:none}
@@ -220,6 +229,7 @@ html,body{height:100%;margin:0;background:radial-gradient(120% 75% at 50% 24%,#0
 <div class="ui" id="top">
   <span id="agenda">COURSE AGENDA</span>
   <span id="brand">BIGOHACADEMY · T07</span>
+  <span id="level" title="Basic training — the core ideas, clearly explained. Not a deep dive.">BASIC TRAINING · NOT A DEEP DIVE</span>
   <nav id="crumbs" aria-label="Where you are"></nav>
   <button class="btn agbtn" id="bAgenda" type="button">What's taught in class</button>
 </div>
@@ -232,7 +242,7 @@ html,body{height:100%;margin:0;background:radial-gradient(120% 75% at 50% 24%,#0
   <button class="btn" id="bNext" type="button">Next path ›</button>
 </div>
 <div id="fade" aria-hidden="true"></div>
-<div id="classAg" hidden role="dialog" aria-label="What is taught in class"><div class="card"><button class="x" type="button" aria-label="Close">×</button><div class="tabs"></div><div class="body"></div></div></div>
+<div id="classAg" hidden role="dialog" aria-label="What is taught in class"><div class="card"><button class="x" type="button" aria-label="Close">×</button><div class="lvl"><b>BASIC TRAINING</b>The core ideas, clearly explained — not a deep dive.</div><div class="tabs"></div><div class="body"></div></div></div>
 
 <div id="copy">© 2026 BigOhAcademy · Ramalingam Vijayakumaran Nair · All rights reserved</div>
 <div id="nogl" hidden>
@@ -900,8 +910,7 @@ async function openCase() {
   caseG.visible = false;   // the empty case stays hidden, so it can't cut into the bundle in front of it
   BUNDLES.forEach(b => show(b.label, true));
   SPD = 1;
-  level = 1; busy = false; ui();
-  orbitBundles();
+  level = 1; busy = false; ui();   // no turn round the paths: they stay still once the box opens
 }
 // a bobbing "unlock here" tag above the seal while the box waits to be opened
 let UNLOCK = null;
@@ -1259,6 +1268,20 @@ function buildRoom(b, j, s, opt = {}) {
   const flat = (W, H, color, x, y, z, ry = 0, rx = 0) => { const m = new THREE.Mesh(new THREE.PlaneGeometry(W, H), new THREE.MeshBasicMaterial({color: new THREE.Color(color).convertSRGBToLinear(), side: THREE.DoubleSide})); m.position.set(x, y, z); m.rotation.set(rx, ry, 0); g.add(m); return m; };
   const lines = (arr, color, op) => { const lg = new THREE.BufferGeometry(); lg.setAttribute('position', new THREE.Float32BufferAttribute(arr, 3)); const l = new THREE.LineSegments(lg, new THREE.LineBasicMaterial({color, transparent: true, opacity: op})); g.add(l); return l; };
   flat(w, d, 0x09111f, 0, 0, 0, 0, -Math.PI / 2);                 // floor
+  {   // once per room, painted on the floor just ahead of where you land: this is a preview of the class
+    const c = document.createElement('canvas'); c.width = 2048; c.height = 560; const x = c.getContext('2d');
+    x.textAlign = 'center'; x.textBaseline = 'middle'; x.lineWidth = 6; x.strokeStyle = 'rgba(61,255,168,0.55)';
+    x.shadowColor = '#3dffa8'; x.shadowBlur = 28;
+    const rr = (X, Y, W, H, R) => { x.beginPath(); x.moveTo(X + R, Y); x.arcTo(X + W, Y, X + W, Y + H, R); x.arcTo(X + W, Y + H, X, Y + H, R); x.arcTo(X, Y + H, X, Y, R); x.arcTo(X, Y, X + W, Y, R); x.closePath(); };
+    rr(40, 30, 1968, 500, 60); x.stroke();
+    x.fillStyle = '#7dffc4'; x.font = '700 150px "IBM Plex Mono",ui-monospace,Menlo,monospace';
+    x.fillText("A PREVIEW OF WHAT'S", 1024, 165); x.fillText('TAUGHT IN CLASS', 1024, 315);
+    x.shadowBlur = 16; x.fillStyle = 'rgba(200,255,228,0.9)'; x.font = '500 92px "IBM Plex Sans",system-ui,sans-serif';
+    x.fillText('the full story is taught live', 1024, 450);
+    const t = new THREE.CanvasTexture(c); t.encoding = THREE.sRGBEncoding; t.anisotropy = renderer.capabilities.getMaxAnisotropy();
+    const fw = Math.min(3.4, w - 1.2), mark = new THREE.Mesh(new THREE.PlaneGeometry(fw, fw * 0.62), new THREE.MeshBasicMaterial({map: t, transparent: true, opacity: 0.85, depthWrite: false, toneMapped: false}));
+    mark.rotation.x = -Math.PI / 2; mark.position.set(0, 0.006, d / 2 - 6.4); g.add(mark);
+  }
   const roof = flat(w, d, 0xffffff, 0, h, 0, 0, Math.PI / 2);   // the roof is a night sky
   roof.material.map = (() => { const c = document.createElement('canvas'); c.width = 768; c.height = 2304; const x = c.getContext('2d');
     const gr = x.createLinearGradient(0, 0, 768, 0); gr.addColorStop(0, '#060b18'); gr.addColorStop(0.5, '#122450'); gr.addColorStop(1, '#060b18'); x.fillStyle = gr; x.fillRect(0, 0, 768, 2304);
