@@ -1581,13 +1581,16 @@ function setCurrent(n) {   // which room of the ring you are in now
 function spriteText(lines, col, w, h) {   // a label that always faces you, for the ring seen from space
   const c = document.createElement('canvas'); c.width = 1024; c.height = Math.round(1024 * h / w); const g = c.getContext('2d');
   g.textAlign = 'center'; g.shadowColor = col; g.shadowBlur = 18;
-  lines.forEach(([t, font, fill, y]) => { g.font = font; g.fillStyle = fill; g.fillText(t, 512, y); });
+  lines.forEach(([t, font, fill, y]) => { g.font = font; const tw = g.measureText(t).width;   // a long name shrinks to fit instead of being cut at the edges
+    if (tw > 960) { const m = font.match(/(\d+)px/); g.font = font.replace(/\d+px/, Math.floor(+m[1] * 960 / tw) + 'px'); }
+    g.fillStyle = fill; g.fillText(t, 512, y); });
   const t = new THREE.CanvasTexture(c); t.encoding = THREE.sRGBEncoding;
   const sp = new THREE.Sprite(new THREE.SpriteMaterial({map: t, transparent: true, depthWrite: false, toneMapped: false})); sp.scale.set(w, h, 1); return sp;
 }
 function buildHex(b, n0) {   // the whole path from outside: one closed polygon of containers floating in space
   // seen from far away the containers are drawn fatter (F) so they read clearly; as you dive in they slim to their true size
   const T = b.tracks.length, P = COACH(), M = 10, F = 2.3, MAXR = Math.max(...plan(b).map(x => x.length)), L = MAXR * P + 2 * M, Rc = L / (2 * Math.sin(Math.PI / T)), SC = 0.25;
+  const LK = Math.min(1, L / (3 * P + 2 * M));   // labels shrink with the ring: a path of one-room tracks makes a small ring, and full-size labels would swamp it
   const G = new THREE.Group(), {w, h, d} = ROOM, Y = new THREE.Vector3(0, 1, 0);
   const V = k => { const a = -Math.PI / 2 - Math.PI / T + k * TAU / T; return new THREE.Vector3(Rc * Math.cos(a), 0, Rc * Math.sin(a)); };
   const boxG = new THREE.BoxGeometry(w + 0.14, h + 0.14, d + 0.06), edgeG = new THREE.EdgesGeometry(boxG), gangG = new THREE.BoxGeometry(HW * 1.2, HH, GAP + 0.2);
@@ -1623,12 +1626,12 @@ function buildHex(b, n0) {   // the whole path from outside: one closed polygon 
     // the track's name floats beside its side of the ring
     const mid = a.clone().add(z).multiplyScalar(0.5), out = mid.clone().normalize();
     const lb = spriteText([[`TRACK ${k + 1}`, '600 70px "JetBrains Mono", ui-monospace, monospace', b.col, 90], [b.tracks[k][0], '600 92px "IBM Plex Sans", system-ui, sans-serif', '#ffffff', 200]], b.col, 52, 13);
-    lb.position.set(mid.x + out.x * 26, 22, mid.z + out.z * 26); G.add(lb); labels.push(lb);
+    lb.scale.multiplyScalar(LK); lb.position.set(mid.x + out.x * 26 * LK, 22 * LK, mid.z + out.z * 26 * LK); G.add(lb); labels.push(lb);
   }
   const st = V(0).add(V(1).sub(V(0)).normalize().multiplyScalar(M + (MAXR - roomsIn(b, 0)) * P / 2 + P / 2)), sp = spriteText([['START', '700 120px "JetBrains Mono", ui-monospace, monospace', '#ffd98a', 140]], '#ffd98a', 22, 5.5);
-  sp.position.set(st.x, h * F + 8, st.z); G.add(sp); labels.push(sp);
+  sp.scale.multiplyScalar(LK); sp.position.set(st.x, LK < 1 ? 33 * LK : h * F + 8, st.z);   // on a small ring START sits above the first track's label, not on it G.add(sp); labels.push(sp);
   const ct = spriteText([[`PATH ${b.n}`, '600 90px "JetBrains Mono", ui-monospace, monospace', b.col, 110], [b.name, '600 104px "IBM Plex Sans", system-ui, sans-serif', '#ffffff', 240]], b.col, 60, 17.5);
-  ct.position.set(0, 10, 0); G.add(ct); labels.push(ct);
+  ct.scale.multiplyScalar(LK); ct.position.set(0, 10 * LK, 0); G.add(ct); labels.push(ct);
   scene.add(G);
   const phi = -here.th; G.rotation.y = phi;
   const hex = {g: G, R: Rc * SC, SC, center: new THREE.Vector3(),
