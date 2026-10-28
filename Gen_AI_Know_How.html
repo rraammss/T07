@@ -1554,7 +1554,8 @@ async function walk(dir) {
 const COACH = () => ROOM.d + GAP;
 // the path is one closed ring: every track is one side of a polygon (six tracks: a hexagon), five rooms a side, no dead end
 // which rooms each track has: k = the topic it stands for (DETAIL / DECKS key), title = a starter room named after its track
-const ROOMPLAN = {2: [[{k: 0, starter: true}], [{k: 0, starter: true}], [{k: 0, starter: true}], [{k: 0, starter: true}], [{k: 0, starter: true}], [{k: 0, starter: true}]], 0: [[{k: 0}, {k: 1}], [{k: 0, starter: true}], [{k: 0, starter: true}], [{k: 0, starter: true}, {k: 1}], [{k: 0}, {k: 1}, {k: 2}]]};
+const ROOMPLAN = {1: Array.from({length: 8}, () => [{k: 0, starter: true}]),   // Path 2: one starter room per track for now; rooms are added as videos arrive
+  2: [[{k: 0, starter: true}], [{k: 0, starter: true}], [{k: 0, starter: true}], [{k: 0, starter: true}], [{k: 0, starter: true}], [{k: 0, starter: true}]], 0: [[{k: 0}, {k: 1}], [{k: 0, starter: true}], [{k: 0, starter: true}], [{k: 0, starter: true}, {k: 1}], [{k: 0}, {k: 1}, {k: 2}]]};
 function plan(b) {
   if (!b._plan) {
     b._plan = b.tracks.map((t, j) => (ROOMPLAN[b.i] && ROOMPLAN[b.i][j]) || [0, 1, 2, 3, 4].map(k => ({k})));
@@ -1748,15 +1749,15 @@ async function openSession(b, j, s) {
     const lg = new THREE.BufferGeometry(); lg.setAttribute('position', new THREE.Float32BufferAttribute(LR, 3)); lid.add(new THREE.LineSegments(lg, new THREE.LineBasicMaterial({color: new THREE.Color(b.col), transparent: true, opacity: 0.45}))); }
   lid.add(new THREE.LineSegments(new THREE.EdgesGeometry(lidM.geometry), new THREE.LineBasicMaterial({color: new THREE.Color(b.col).offsetHSL(0, 0.05, 0.12)})));
   level = 3; ui();
-  // 1 · the path from close by: one quick turn round the ring
+  // 1 · the path from close by: held still for a beat, no spin, so you see the ship and your container
   const yaw0 = 0.2;
   Object.assign(rig, {tx: hex.center.x, ty: -5, tz: hex.center.z, yaw: yaw0, pitch: 0.9, dist: hex.R * 2.95}); drag.yaw = drag.pitch = 0;
   fade(0, 0.45);
-  await tween(1.6, k => { rig.yaw = yaw0 + TAU * 0.45 * k; rig.pitch = 0.9 - 0.1 * k; });
+  await wait(0.4);
   // 2 · glide over to the room you picked; the ring grows to full size round it and the containers settle to their true shape
   const a = {...rig}, c0 = hex.center.clone(), to = {tx: RP.x, ty: 1.2, tz: RP.z, yaw: 0, pitch: 1.25, dist: 11};
   while (to.yaw - a.yaw > Math.PI) to.yaw -= TAU; while (a.yaw - to.yaw > Math.PI) to.yaw += TAU;
-  await tween(2.0, (e, k) => {
+  await tween(1.2, (e, k) => {
     const t1 = ease(Math.min(1, k / 0.4)), pk = ease(Math.max(0, (k - 0.5) / 0.5));   // look at your room early; tip over it late
     hex.setScale(lerp(hex.SC, 1, Math.pow(k, 1.25))); hex.setFat(Math.min(1, Math.max(0, (k - 0.2) / 0.65))); hex.labels(Math.max(0, 1 - k * 2.2));
     rig.tx = lerp(c0.x, to.tx, t1); rig.tz = lerp(c0.z, to.tz, t1); rig.ty = lerp(a.ty, to.ty, t1);
