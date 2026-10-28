@@ -344,6 +344,24 @@ if (!renderer || !window.THREE) {   // no 3D here: show the three bundles as car
 }
 renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, matchMedia('(hover:none),(pointer:coarse)').matches ? 1.5 : 2));   // phones: lighter on graphics memory
 renderer.outputEncoding = THREE.sRGBEncoding;
+// phones and tablets: every text board is drawn at 2048 px, and four rooms stay loaded; that is ~550 MB of textures, more than an iPhone allows.
+// So on touch devices each large canvas is copied at half size before it goes to the GPU (a quarter of the memory, still sharp on a phone screen).
+function CTex(c) {
+  if (CTex.ph === undefined) CTex.ph = matchMedia('(hover:none),(pointer:coarse)').matches;
+  const A = 800 * 440;   // the pixel budget per texture on a phone (a 2048 x 1100 board becomes about 800 x 430: still wider than it shows on a phone)
+  if (!CTex.ph || c.width * c.height <= A) return new THREE.CanvasTexture(c);
+  const k = Math.sqrt(A / (c.width * c.height)), d = document.createElement('canvas'); d.width = Math.max(1, Math.round(c.width * k)); d.height = Math.max(1, Math.round(c.height * k));
+  d.getContext('2d').drawImage(c, 0, 0, d.width, d.height);
+  const t = new THREE.CanvasTexture(d); t._big = c; return t;
+}
+function ctexSync(t) { const c = t._big; if (c) { const g = t.image.getContext('2d'); g.clearRect(0, 0, t.image.width, t.image.height); g.drawImage(c, 0, 0, t.image.width, t.image.height); } }
+canvas.addEventListener('webglcontextlost', e => {   // if the device still runs out of graphics memory, say so instead of a blank screen
+  e.preventDefault();
+  const m = document.createElement('div');
+  m.style.cssText = 'position:fixed;inset:0;z-index:99;display:grid;place-items:center;background:#060a14;color:#e3e9f2;font:500 16px system-ui,sans-serif;text-align:center;padding:24px';
+  m.innerHTML = '<div>The 3D view ran out of graphics memory on this device.<br><br><b style="color:#8fe0bf">Tap to reload</b></div>';
+  m.onclick = () => location.reload(); document.body.appendChild(m);
+});
 const BG = new THREE.Color('#060a14');
 const scene = new THREE.Scene();
 renderer.setClearColor(0x000000, 0);
@@ -377,7 +395,7 @@ function halo(col, r) {
   const x = c.getContext('2d'), gr = x.createRadialGradient(256, 256, 0, 256, 256, 256);
   gr.addColorStop(0, col); gr.addColorStop(0.35, col); gr.addColorStop(1, 'rgba(0,0,0,0)');
   x.globalAlpha = 0.5; x.fillStyle = gr; x.fillRect(0, 0, 512, 512);
-  const m = new THREE.Mesh(new THREE.PlaneGeometry(r, r), new THREE.MeshBasicMaterial({map: new THREE.CanvasTexture(c), transparent: true, opacity: 0.1, blending: THREE.AdditiveBlending, depthWrite: false}));
+  const m = new THREE.Mesh(new THREE.PlaneGeometry(r, r), new THREE.MeshBasicMaterial({map: CTex(c), transparent: true, opacity: 0.1, blending: THREE.AdditiveBlending, depthWrite: false}));
   m.rotation.x = -Math.PI / 2; m.position.y = 0.02;
   return m;
 }
@@ -486,7 +504,7 @@ function drawIcon(g, name, x, y, size, col, lw) {
 function iconPlate(w, d, draw) {   // a transparent plate laid on a lid, carrying the engraving
   const c = document.createElement('canvas'), px = 300; c.width = Math.round(w * px); c.height = Math.round(d * px);
   const g = c.getContext('2d'); draw(g, px, c.width, c.height);
-  const t = new THREE.CanvasTexture(c); t.encoding = THREE.sRGBEncoding; t.anisotropy = renderer.capabilities.getMaxAnisotropy();
+  const t = CTex(c); t.encoding = THREE.sRGBEncoding; t.anisotropy = renderer.capabilities.getMaxAnisotropy();
   const m = new THREE.Mesh(new THREE.PlaneGeometry(w, d), new THREE.MeshBasicMaterial({map: t, transparent: true, opacity: 0.9, depthWrite: false, toneMapped: false}));
   m.rotation.x = -Math.PI / 2; m.userData = {icons: true, base: 0.9}; m.renderOrder = 4; return m;
 }
@@ -515,7 +533,7 @@ const frontName = (() => {
   g.fillText('GEN SI — KNOW HOW', 1024, 330);
   g.shadowBlur = 10; g.letterSpacing = '3px'; g.fillStyle = '#d9c9a6'; g.font = '400 46px "JetBrains Mono", ui-monospace, monospace';
   g.fillText("every concept is a point in 1536 dimensions · let's learn", 1024, 470, 1900);
-  const t = new THREE.CanvasTexture(c); t.encoding = THREE.sRGBEncoding; t.anisotropy = renderer.capabilities.getMaxAnisotropy();
+  const t = CTex(c); t.encoding = THREE.sRGBEncoding; t.anisotropy = renderer.capabilities.getMaxAnisotropy();
   const m = new THREE.Mesh(new THREE.PlaneGeometry(CASE.w * 0.94, CASE.w * 0.94 * 720 / 2048), new THREE.MeshBasicMaterial({map: t, transparent: true, toneMapped: false, depthWrite: false}));
   m.position.set(0, CASE.h * 0.5, CASE.d / 2 + 0.015); m.renderOrder = 5; caseG.add(m);
   // the same name on the other three sides, sharing one material so they fade together
@@ -667,7 +685,7 @@ function floorLayer(draw) {
     label(x, z, t, col, k = 1) { const [a, b] = P(x, z); g.save(); g.font = `500 ${Math.round(12 * k)}px "JetBrains Mono", ui-monospace, monospace`; g.fillStyle = col; g.globalAlpha = 0.9; g.fillText(t, a, b); g.restore(); },
     zone(x1, z1, x2, z2, col) { const [a, b] = P(x1, z1), [c2, d] = P(x2, z2); g.strokeStyle = col; g.globalAlpha = 0.45; g.setLineDash([6, 14]); g.strokeRect(a, b, c2 - a, d - b); g.setLineDash([]); }};
   draw(api);
-  const tex = new THREE.CanvasTexture(c); tex.anisotropy = renderer.capabilities.getMaxAnisotropy();
+  const tex = CTex(c); tex.anisotropy = renderer.capabilities.getMaxAnisotropy();
   const m = new THREE.Mesh(new THREE.PlaneGeometry(FLOOR.w, FLOOR.h), new THREE.MeshBasicMaterial({map: tex, transparent: true, opacity: 0.3, depthWrite: false}));
   m.rotation.x = -Math.PI / 2; m.position.set(FLOOR.x0 + FLOOR.w / 2, 0.015, FLOOR.z0 + FLOOR.h / 2);
   scene.add(m); return m;
@@ -690,7 +708,7 @@ chart.material.opacity = 0;
 // ───────────── the embedding space: a cloud of points, and three of its 1536 axes ─────────────
 const dotTex = (() => { const c = document.createElement('canvas'); c.width = c.height = 64; const x = c.getContext('2d');
   const gr = x.createRadialGradient(32, 32, 0, 32, 32, 32); gr.addColorStop(0, 'rgba(255,255,255,1)'); gr.addColorStop(0.45, 'rgba(255,255,255,.85)'); gr.addColorStop(1, 'rgba(255,255,255,0)');
-  x.fillStyle = gr; x.fillRect(0, 0, 64, 64); return new THREE.CanvasTexture(c); })();
+  x.fillStyle = gr; x.fillRect(0, 0, 64, 64); return CTex(c); })();
 const rnd = (() => { let s = 7; return () => (s = (s * 16807) % 2147483647) / 2147483647; })();
 const gauss = () => { let u = 0, v = 0; while (!u) u = rnd(); while (!v) v = rnd(); return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v); };
 function cloud(n, place, color, size, op) {
@@ -1068,7 +1086,7 @@ function panelTex(eyebrow, col, body, muted, num, title, accent) {   // laid out
   }
   g.fillStyle = muted ? '#7d8aa0' : '#e3e9f2';
   lines.forEach((l, i) => g.fillText(l, 120, top + i * lh));
-  const t = new THREE.CanvasTexture(c); t.anisotropy = renderer.capabilities.getMaxAnisotropy(); t.encoding = THREE.sRGBEncoding;
+  const t = CTex(c); t.anisotropy = renderer.capabilities.getMaxAnisotropy(); t.encoding = THREE.sRGBEncoding;
   return t;
 }
 function titleTex(eyebrow, col, title) {   // the hanging sign: number and track, then the session title, in a fine frame
@@ -1079,7 +1097,7 @@ function titleTex(eyebrow, col, title) {   // the hanging sign: number and track
   g.fillStyle = col; g.font = '500 50px "JetBrains Mono", ui-monospace, monospace'; g.letterSpacing = '10px'; g.fillText(eyebrow, 1024, 140); g.letterSpacing = '0px';
   g.fillStyle = '#ffffff'; g.font = '600 92px "IBM Plex Sans", system-ui, sans-serif';
   const L = wrapText(g, title, 1860).slice(0, 2); L.forEach((l, i) => g.fillText(l, 1024, (L.length > 1 ? 280 : 330) + i * 112));
-  const t = new THREE.CanvasTexture(c); t.anisotropy = renderer.capabilities.getMaxAnisotropy(); t.encoding = THREE.sRGBEncoding;
+  const t = CTex(c); t.anisotropy = renderer.capabilities.getMaxAnisotropy(); t.encoding = THREE.sRGBEncoding;
   return t;
 }
 // session previews: a real deck on the first board; click it and it plays end to end in an overlay
@@ -1146,7 +1164,7 @@ function signTex(name, col, room, line) {   // a coloured signpost board: the cl
   g.strokeStyle = 'rgba(125,138,160,0.45)'; g.lineWidth = 3; g.beginPath(); g.moveTo(120, 880); g.lineTo(1928, 880); g.stroke();
   g.fillStyle = col; g.font = '500 50px "JetBrains Mono", ui-monospace, monospace'; g.letterSpacing = '6px';
   g.fillText(name === 'Then' ? 'WALK ON, OR CLICK 5 OR 6 BELOW  \u2192' : `WALK ON, OR CLICK ${room.slice(5)} BELOW  \u2192`, 120, 990); g.letterSpacing = '0px';
-  const t = new THREE.CanvasTexture(c); t.anisotropy = renderer.capabilities.getMaxAnisotropy(); t.encoding = THREE.sRGBEncoding; return t;
+  const t = CTex(c); t.anisotropy = renderer.capabilities.getMaxAnisotropy(); t.encoding = THREE.sRGBEncoding; return t;
 }
 const SOON = {   // boards with a planned topic but no video yet: path-track-room -> titles, left/right in walking order
 '2-1-0': ['Bedrock: catalog and calling a model', 'Knowledge Bases: answers from your docs', 'AgentCore Runtime + Gateway tools', 'AgentCore Memory', 'IAM, agent identity, Guardrails in + out', 'Observability and evaluations'],
@@ -1155,7 +1173,7 @@ const SOON = {   // boards with a planned topic but no video yet: path-track-roo
 const deckAt = (key, at) => (DECKS[key] || {})[at - 1];   // at = station 1..6 (L1, R1, L2, R2, L3, R3)
 function posterTex(dk, col) {   // the deck's own frame, a play button and an invitation to click
   const c = document.createElement('canvas'); c.width = 2048; c.height = 1100; const g = c.getContext('2d');
-  const t = new THREE.CanvasTexture(c); t.anisotropy = renderer.capabilities.getMaxAnisotropy(); t.encoding = THREE.sRGBEncoding;
+  const t = CTex(c); t.anisotropy = renderer.capabilities.getMaxAnisotropy(); t.encoding = THREE.sRGBEncoding;
   const draw = img => {
     g.fillStyle = '#0a1120'; g.fillRect(0, 0, 2048, 1100);
     if (img) { const ih = 2032 * img.height / img.width; g.drawImage(img, 8, 8 + (920 - ih) / 2, 2032, ih); }
@@ -1169,7 +1187,7 @@ function posterTex(dk, col) {   // the deck's own frame, a play button and an in
       g.font = F1; const w1 = g.measureText(t1).width; g.font = F2; const w2 = g.measureText(t2).width, x0 = 1024 - (w1 + w2) / 2;
       g.textAlign = 'left'; g.font = F1; g.fillStyle = '#ffffff'; g.fillText(t1, x0, 1046); g.font = F2; g.fillStyle = '#9fb2d2'; g.fillText(t2, x0 + w1, 1046); g.textAlign = 'center'; }
     g.strokeStyle = col; g.lineWidth = 6; g.strokeRect(4, 4, 2040, 1092);
-    t.needsUpdate = true;
+    ctexSync(t); t.needsUpdate = true;
   };
   draw(null); const img = new Image(); img.onload = () => draw(img); img.src = dk.poster;
   return t;
@@ -1219,7 +1237,7 @@ function hatchPlate(colCss, ghost, glow = 1) {   // a doorway frame: rounded at 
   if (ghost) { g.globalCompositeOperation = 'destination-out'; g.beginPath(); const x = ox - 6, y = oy - 6, w = 352, r = 42;
     g.moveTo(x, fy - 7); g.lineTo(x, y + r); g.arcTo(x, y, x + r, y, r); g.lineTo(x + w - r, y); g.arcTo(x + w, y, x + w, y + r, r); g.lineTo(x + w, fy - 7); g.closePath(); g.fill(); }
   g.globalCompositeOperation = 'destination-out'; g.fillRect(0, fy, W, H - fy);   // nothing below the floor
-  const t = new THREE.CanvasTexture(c); t.encoding = THREE.sRGBEncoding;
+  const t = CTex(c); t.encoding = THREE.sRGBEncoding;
   const m = new THREE.Mesh(new THREE.PlaneGeometry(HW * W / 340, HH * H / 500), new THREE.MeshBasicMaterial({map: t, transparent: true, depthWrite: false, toneMapped: false, side: THREE.DoubleSide}));
   return m;
 }
@@ -1231,7 +1249,7 @@ function markerLights(g, z, colHex) {   // small docking lights along both sides
   return out;
 }   // the gangway between coaches, and the doorway it joins
 // ───── the live demo: a games machine in the corner of the room ─────
-function arcTex(w, h, draw) { const c = document.createElement('canvas'); c.width = w; c.height = h; draw(c.getContext('2d'), w, h); const t = new THREE.CanvasTexture(c); t.encoding = THREE.sRGBEncoding; t.anisotropy = renderer.capabilities.getMaxAnisotropy(); return t; }
+function arcTex(w, h, draw) { const c = document.createElement('canvas'); c.width = w; c.height = h; draw(c.getContext('2d'), w, h); const t = CTex(c); t.encoding = THREE.sRGBEncoding; t.anisotropy = renderer.capabilities.getMaxAnisotropy(); return t; }
 function marqueeTex(col, num) {
   return arcTex(1024, 256, (g, W, H) => {
     const gr = g.createLinearGradient(0, 0, 0, H); gr.addColorStop(0, '#1a0f2e'); gr.addColorStop(1, '#07040f'); g.fillStyle = gr; g.fillRect(0, 0, W, H);
@@ -1341,7 +1359,7 @@ function buildRoom(b, j, s, opt = {}) {
     x.fillText("A PREVIEW OF WHAT'S", 1024, 165); x.fillText('TAUGHT IN CLASS', 1024, 315);
     x.shadowBlur = 0; x.fillStyle = 'rgba(190,215,225,0.7)'; x.font = '500 92px "IBM Plex Sans",system-ui,sans-serif';
     x.fillText('the full story is taught live', 1024, 450);
-    const t = new THREE.CanvasTexture(c); t.encoding = THREE.sRGBEncoding; t.anisotropy = renderer.capabilities.getMaxAnisotropy();
+    const t = CTex(c); t.encoding = THREE.sRGBEncoding; t.anisotropy = renderer.capabilities.getMaxAnisotropy();
     const fw = 2.1, mark = new THREE.Mesh(new THREE.PlaneGeometry(fw, fw * 0.62), new THREE.MeshBasicMaterial({map: t, transparent: true, opacity: 0.7, depthWrite: false, toneMapped: false}));
     mark.rotation.x = -Math.PI / 2; mark.position.set(0, 0.006, d / 2 - 5.6); g.add(mark);
   }
@@ -1356,7 +1374,7 @@ function buildRoom(b, j, s, opt = {}) {
       const px = rnd() * 768, py = rnd() * 2304, big = r > 0.965, rad = big ? 2.6 : 0.6 + rnd() * 1.1;
       if (big || rnd() > 0.7) { const h = x.createRadialGradient(px, py, 0, px, py, rad * 4); h.addColorStop(0, `rgba(${col},0.5)`); h.addColorStop(1, `rgba(${col},0)`); x.fillStyle = h; x.fillRect(px - rad * 4, py - rad * 4, rad * 8, rad * 8); }
       x.fillStyle = `rgba(${col},${0.6 + rnd() * 0.4})`; x.beginPath(); x.arc(px, py, rad, 0, Math.PI * 2); x.fill(); }
-    const t = new THREE.CanvasTexture(c); t.encoding = THREE.sRGBEncoding; t.anisotropy = renderer.capabilities.getMaxAnisotropy(); return t; })();
+    const t = CTex(c); t.encoding = THREE.sRGBEncoding; t.anisotropy = renderer.capabilities.getMaxAnisotropy(); return t; })();
   roof.material.toneMapped = false;
   roof.material.color.set(0xffffff); roof.material.needsUpdate = true;
   flat(d, h, 0x0b1426, -w / 2, h / 2, 0, Math.PI / 2);            // left wall
@@ -1385,7 +1403,7 @@ function buildRoom(b, j, s, opt = {}) {
     const nc = document.createElement('canvas'); nc.width = 1024; nc.height = 160; const ng = nc.getContext('2d');
     ng.fillStyle = b.col; ng.font = '500 64px "JetBrains Mono", ui-monospace, monospace'; ng.textAlign = 'center'; ng.letterSpacing = '10px';
     ng.fillText('NEXT  →', 512, 100);
-    const nt = new THREE.CanvasTexture(nc); nt.encoding = THREE.sRGBEncoding;
+    const nt = CTex(nc); nt.encoding = THREE.sRGBEncoding;
     const sign = new THREE.Mesh(new THREE.PlaneGeometry(1.9, 0.3), new THREE.MeshBasicMaterial({map: nt, transparent: true, toneMapped: false}));
     sign.position.set(0, HH + 0.38, -d / 2 + 0.05);   // no sign above the hatch: the doorway itself names the next session
     const dc = document.createElement('canvas'); dc.width = 1024; dc.height = 1400; const dg = dc.getContext('2d');
@@ -1397,7 +1415,7 @@ function buildRoom(b, j, s, opt = {}) {
       dg.letterSpacing = '0px'; dg.fillStyle = '#eef3fa'; dg.font = '500 56px "IBM Plex Sans", system-ui, sans-serif'; wrapText(dg, b.tracks[nj][0], 880).slice(0, 2).forEach((l, i) => dg.fillText(l, 512, 810 + i * 66)); dg.fillStyle = b.col; }
     dg.shadowBlur = 24; dg.font = '500 58px "JetBrains Mono", ui-monospace, monospace'; dg.letterSpacing = '8px';
     dg.fillText('↑  W  ·  WALK ON', 512, 1000);
-    const dt = new THREE.CanvasTexture(dc); dt.encoding = THREE.sRGBEncoding;
+    const dt = CTex(dc); dt.encoding = THREE.sRGBEncoding;
     const inDoor = new THREE.Mesh(new THREE.PlaneGeometry(HW - 0.1, (HW - 0.1) * 1400 / 1024), new THREE.MeshBasicMaterial({map: dt, transparent: true, toneMapped: false, depthWrite: false}));
     inDoor.position.set(0, HH / 2 + 0.05, -d / 2 - GAP * 0.5); g.add(inDoor);
     // a dark card behind the sign, so the hatch shows the next session's name, not a view into its corridor; it fades as you walk up to it
@@ -1451,7 +1469,7 @@ function buildRoom(b, j, s, opt = {}) {
   exitPivot.userData.halves = halves;
   const ex = document.createElement('canvas'); ex.width = 512; ex.height = 128; const xg = ex.getContext('2d');
   xg.shadowColor = '#b8423a'; xg.shadowBlur = 8; xg.fillStyle = '#d0584e'; xg.font = '400 56px "JetBrains Mono", ui-monospace, monospace'; xg.textAlign = 'center'; xg.letterSpacing = '14px'; xg.fillText('EXIT', 256, 88);
-  const exT = new THREE.CanvasTexture(ex); exT.encoding = THREE.sRGBEncoding;
+  const exT = CTex(ex); exT.encoding = THREE.sRGBEncoding;
   const exitSign = new THREE.Mesh(new THREE.PlaneGeometry(1.0, 0.25), new THREE.MeshBasicMaterial({map: exT, transparent: true, toneMapped: false})); exitSign.position.set(0, HH + 0.42, -d / 2 + 0.04); exitGroup.add(exitSign);
   // the boards: left, right, left
   const RK = roomKey(b, j, s), det = DETAIL[`${b.i}-${j}-${RK}`];
@@ -1585,7 +1603,7 @@ function spriteText(lines, col, w, h) {   // a label that always faces you, for 
   lines.forEach(([t, font, fill, y]) => { g.font = font; const tw = g.measureText(t).width;   // a long name shrinks to fit instead of being cut at the edges
     if (tw > 960) { const m = font.match(/(\d+)px/); g.font = font.replace(/\d+px/, Math.floor(+m[1] * 960 / tw) + 'px'); }
     g.fillStyle = fill; g.fillText(t, 512, y); });
-  const t = new THREE.CanvasTexture(c); t.encoding = THREE.sRGBEncoding;
+  const t = CTex(c); t.encoding = THREE.sRGBEncoding;
   const sp = new THREE.Sprite(new THREE.SpriteMaterial({map: t, transparent: true, depthWrite: false, toneMapped: false})); sp.scale.set(w, h, 1); return sp;
 }
 function buildHex(b, n0) {   // the whole path from outside: one closed polygon of containers floating in space
