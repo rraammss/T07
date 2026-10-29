@@ -1609,7 +1609,7 @@ function spriteText(lines, col, w, h) {   // a label that always faces you, for 
 function buildHex(b, n0) {   // the whole path from outside: one closed polygon of containers floating in space
   // seen from far away the containers are drawn fatter (F) so they read clearly; as you dive in they slim to their true size
   const T = b.tracks.length, P = COACH(), M = 10, F = 2.3, MAXR = Math.max(...plan(b).map(x => x.length)), L = MAXR * P + 2 * M, Rc = L / (2 * Math.sin(Math.PI / T)), SC = 0.25;
-  const LK = Math.min(1, L / (3 * P + 2 * M));   // labels shrink with the ring: a path of one-room tracks makes a small ring, and full-size labels would swamp it
+  const LK = Math.min(1, L / (3 * P + 2 * M)), LS = 0.5 * Rc / ((3 * P + 2 * M) / (2 * Math.sin(Math.PI / 5)));   // label size is proportional to the ring's radius; the camera stands back by the same ratio, so labels read the same size on screen on every path   // labels shrink with the ring: a path of one-room tracks makes a small ring, and full-size labels would swamp it
   const G = new THREE.Group(), {w, h, d} = ROOM, Y = new THREE.Vector3(0, 1, 0);
   const V = k => { const a = -Math.PI / 2 - Math.PI / T + k * TAU / T; return new THREE.Vector3(Rc * Math.cos(a), 0, Rc * Math.sin(a)); };
   const boxG = new THREE.BoxGeometry(w + 0.14, h + 0.14, d + 0.06), edgeG = new THREE.EdgesGeometry(boxG), gangG = new THREE.BoxGeometry(HW * 1.2, HH, GAP + 0.2);
@@ -1622,7 +1622,8 @@ function buildHex(b, n0) {   // the whole path from outside: one closed polygon 
   for (let x = -w / 2 + 0.35; x < w / 2; x += 0.7) RB.push(x, h / 2 + 0.085, -d / 2 + 0.05, x, h / 2 + 0.085, d / 2 - 0.05);
   const ribG = new THREE.BufferGeometry(); ribG.setAttribute('position', new THREE.Float32BufferAttribute(RB, 3));
   const gangM = new THREE.MeshStandardMaterial({color: 0x0a1222, roughness: 0.9});
-  const fat = [], slotObjs = {}, labels = [];
+  const fat = [], slotObjs = {}, labels = [], lamps = [];
+  const bandM = new THREE.MeshBasicMaterial({color: col.clone().offsetHSL(0, 0, 0.08), transparent: true, opacity: 0.85}), band2M = new THREE.MeshBasicMaterial({color: col, transparent: true, opacity: 0.45}), lampG = new THREE.SphereGeometry(0.16, 10, 8);
   const add = (o, y0, all) => { G.add(o); fat.push({o, y0, all}); return o; };
   let here = null;
   for (let k = 0; k < T; k++) {
@@ -1640,17 +1641,22 @@ function buildHex(b, n0) {   // the whole path from outside: one closed polygon 
     // the corner: a round junction where one track turns into the next
     const node = add(new THREE.Mesh(new THREE.CylinderGeometry(3.1, 3.1, h, 28), shellM), h / 2, true); node.position.set(a.x, h / 2, a.z);
     const ring = add(new THREE.LineSegments(new THREE.EdgesGeometry(node.geometry, 30), outM), h / 2, true); ring.position.copy(node.position);
+    // station lights: a lit band round the top rim and a ring of small lamps that pulse one after another
+    const band = new THREE.Mesh(new THREE.TorusGeometry(3.12, 0.06, 6, 48), bandM); band.rotation.x = Math.PI / 2; band.position.y = h / 2 - 0.05; node.add(band);   // children of the junction: they grow and slim with it
+    const band2 = new THREE.Mesh(new THREE.TorusGeometry(3.12, 0.035, 6, 48), band2M); band2.rotation.x = Math.PI / 2; band2.position.y = -h / 2 + 0.35; node.add(band2);
+    for (let q = 0; q < 8; q++) { const an = q * TAU / 8, lm = new THREE.Mesh(lampG, new THREE.MeshBasicMaterial({color: col, transparent: true, opacity: 0.9}));
+      lm.position.set(Math.cos(an) * 3.14, 0, Math.sin(an) * 3.14); node.add(lm); lamps.push({m: lm, ph: q / 8 + k * 0.13}); }
     [[a, pad], [z, -pad]].forEach(([v, off]) => { const len = Math.abs(off) - 2.9, cg = add(new THREE.Mesh(new THREE.BoxGeometry(HW * 1.2, HH, len), gangM), HH / 2);
       const q = v.clone().add(u.clone().multiplyScalar(Math.sign(off) * (2.9 + len / 2))); cg.position.set(q.x, HH / 2, q.z); cg.rotation.y = th; });
     // the track's name floats beside its side of the ring
     const mid = a.clone().add(z).multiplyScalar(0.5), out = mid.clone().normalize();
     const lb = spriteText([[`TRACK ${k + 1}`, '600 70px "JetBrains Mono", ui-monospace, monospace', b.col, 90], [b.tracks[k][0], '600 92px "IBM Plex Sans", system-ui, sans-serif', '#ffffff', 200]], b.col, 52, 13);
-    lb.scale.multiplyScalar(LK); lb.position.set(mid.x + out.x * 26 * LK, 22 * LK, mid.z + out.z * 26 * LK); G.add(lb); labels.push(lb);
+    lb.scale.multiplyScalar(LS); lb.position.set(mid.x + out.x * 26 * LK, 22 * LK, mid.z + out.z * 26 * LK); G.add(lb); labels.push(lb);
   }
   const st = V(0).add(V(1).sub(V(0)).normalize().multiplyScalar(M + (MAXR - roomsIn(b, 0)) * P / 2 + P / 2)), sp = spriteText([['START', '700 120px "JetBrains Mono", ui-monospace, monospace', '#ffd98a', 140]], '#ffd98a', 22, 5.5);
-  sp.scale.multiplyScalar(LK); sp.position.set(st.x, LK < 1 ? 33 * LK : h * F + 8, st.z);   // on a small ring START sits above the first track's label, not on it G.add(sp); labels.push(sp);
+  sp.scale.multiplyScalar(LS); sp.position.set(st.x, LK < 1 ? 33 * LK : h * F + 8, st.z);   // on a small ring START sits above the first track's label, not on it G.add(sp); labels.push(sp);
   const ct = spriteText([[`PATH ${b.n}`, '600 90px "JetBrains Mono", ui-monospace, monospace', b.col, 110], [b.name, '600 104px "IBM Plex Sans", system-ui, sans-serif', '#ffffff', 240]], b.col, 60, 17.5);
-  ct.scale.multiplyScalar(LK); ct.position.set(0, 10 * LK, 0); G.add(ct); labels.push(ct);
+  ct.scale.multiplyScalar(LS); ct.position.set(0, 10 * LK, 0); G.add(ct); labels.push(ct);
   scene.add(G);
   const phi = -here.th; G.rotation.y = phi;
   const hex = {g: G, R: Rc * SC, SC, center: new THREE.Vector3(),
@@ -1658,7 +1664,7 @@ function buildHex(b, n0) {   // the whole path from outside: one closed polygon 
     setFat(f) { const k = lerp(F, 1, f); fat.forEach(({o, y0, all}) => { o.scale.set(k, k, all ? k : 1); o.position.y = y0 * k; }); },
     labels(op) { labels.forEach(l => { l.material.opacity = op; l.visible = op > 0.02; }); },
     hideSlot(n) { (slotObjs[n] || []).forEach(o => o.visible = false); },
-    tick() {}};
+    tick(tt) { const s = (tt || performance.now() / 1000); lamps.forEach(L => { L.m.material.opacity = 0.35 + 0.65 * Math.max(0, Math.sin((s * 0.9 - L.ph) * TAU)) ; }); }};
   hex.setFat(0); hex.setScale(SC);
   return hex;
 }
