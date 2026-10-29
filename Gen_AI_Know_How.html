@@ -30,6 +30,29 @@ html,body{height:100%;margin:0;background:radial-gradient(120% 75% at 50% 24%,#0
 .lbl.on{opacity:1}
 .lbl.case{font:500 16px/1.4 var(--mono);letter-spacing:.18em;color:#fff3d6;text-align:center;text-shadow:0 0 14px rgba(255,210,130,.55),0 1px 6px rgba(3,6,12,.9)}
 .lbl.hint{pointer-events:none;transition:opacity .35s ease}
+.lbl.invite{pointer-events:none;transition:opacity .35s ease}
+.lbl.invite .ib{display:flex;flex-direction:column;align-items:center;gap:5px;padding:10px 18px;border-radius:14px;background:rgba(8,13,25,.9);border:1.5px solid var(--c);
+  box-shadow:0 0 22px color-mix(in srgb,var(--c) 50%,transparent);text-align:center;white-space:nowrap;animation:invGlow 2.2s ease-in-out infinite}
+.lbl.invite .ey{font:600 11px/1 var(--mono);letter-spacing:.16em;color:var(--c)}
+.lbl.invite .go{font:600 15px/1.2 var(--sans);color:#fff}
+.lbl.invite .go b{color:var(--c);font-weight:700}
+@keyframes invGlow{50%{box-shadow:0 0 34px color-mix(in srgb,var(--c) 75%,transparent);transform:translateY(-3px)}}
+@media (prefers-reduced-motion:reduce){.lbl.invite .ib{animation:none}}
+#trackList{position:fixed;z-index:6;right:max(16px,env(safe-area-inset-right,0px));top:50%;transform:translateY(-50%);width:270px;padding:14px 14px 10px;border-radius:14px;
+  background:rgba(8,13,25,.9);border:1px solid var(--c);box-shadow:0 0 18px color-mix(in srgb,var(--c) 30%,transparent);font-family:var(--sans)}
+#trackList .hd{font:600 11px/1.3 var(--mono);letter-spacing:.14em;color:var(--c);margin-bottom:8px}
+#trackList button{all:unset;cursor:pointer;display:flex;gap:10px;align-items:baseline;width:100%;box-sizing:border-box;padding:8px 8px;border-radius:8px;color:#e3e9f2;font:500 14px/1.3 var(--sans)}
+#trackList button b{font:600 12px/1 var(--mono);color:var(--c);min-width:16px}
+#trackList button:hover,#trackList button:focus-visible,#trackList button.on{background:color-mix(in srgb,var(--c) 18%,transparent);color:#fff}
+#trackList .ft{font:500 11.5px/1.3 var(--sans);color:#8fa3c4;margin-top:6px}
+#trackList .inv{display:none}
+@media (max-width:760px){#trackList{top:auto;transform:none;left:max(12px,env(safe-area-inset-left,0px));right:max(12px,env(safe-area-inset-right,0px));width:auto;
+  bottom:calc(150px + env(safe-area-inset-bottom,0px));max-height:36vh;overflow:auto;padding:10px 10px 8px;display:grid;grid-template-columns:1fr 1fr;column-gap:4px}
+  #trackList .hd,#trackList .inv,#trackList .ft{grid-column:1/-1}
+  #trackList .inv{display:block;font:600 14px/1.2 var(--sans);color:#fff;margin:-2px 0 6px}#trackList .inv b{color:var(--c)}
+  #trackList .ft{display:none}
+  #trackList button{padding:6px 5px;font-size:12.5px;gap:6px}
+  .lbl.invite{display:none!important}}   /* phones: the invitation sits at the top of the list card instead of floating over the box */
 .lbl.hint .hb{display:flex;align-items:center;gap:8px;padding:9px 14px;border-radius:999px;background:rgba(8,13,25,.92);border:1px solid var(--c);
   box-shadow:0 0 16px color-mix(in srgb,var(--c) 45%,transparent);font:500 13.5px/1 var(--sans);color:#fff;white-space:nowrap;animation:hintBob 1.6s ease-in-out infinite}
 .lbl.hint .hb::after{content:"";position:absolute;left:50%;bottom:-7px;width:12px;height:12px;background:rgba(8,13,25,.92);border-right:1px solid var(--c);border-bottom:1px solid var(--c);transform:translateX(-50%) rotate(45deg)}
@@ -235,7 +258,6 @@ html,body{height:100%;margin:0;background:radial-gradient(120% 75% at 50% 24%,#0
 @media (max-width:700px){.neon,#wallBtns .exitb{width:30px;height:30px;margin:0 6px}.neon svg,#wallBtns .exitb svg{width:16px;height:16px}.neon::before,#wallBtns .exitb::before{inset:-5px;border-radius:8px}}
 </style>
 
-</head><body>
 <canvas id="gl" aria-label="Three-dimensional course agenda"></canvas>
 <div id="labels"></div>
 <div class="ui" id="top">
@@ -252,6 +274,7 @@ html,body{height:100%;margin:0;background:radial-gradient(120% 75% at 50% 24%,#0
   <span id="wallBtns" hidden><button class="neon skip" id="skPrev" type="button" hidden aria-label="Skip to the previous room" title="Previous room (Shift + ←)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5l-7 7 7 7"/><path d="M19 5l-7 7 7 7"/></svg></button> <button class="neon" id="arrPrev" type="button" hidden data-l="◀ PREVIOUS" aria-label="Previous room"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M15 4 7 12l8 8"/></svg></button> <button class="neon" id="arrNext" type="button" hidden data-l="NEXT ▶" aria-label="Next room"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M9 4l8 8-8 8"/></svg></button> <button class="neon skip" id="skNext" type="button" hidden aria-label="Skip to the next room" title="Next room (Shift + →)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 5l7 7-7 7"/><path d="M12 5l7 7-7 7"/></svg></button> <button class="leave exitb" type="button" data-v="exit" aria-label="Leave the path (Esc)" title="Leave the path (Esc)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 4h4a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-4"/><path d="M10 16l-4-4 4-4"/><path d="M6 12h10"/></svg></button></span>
   <button class="btn" id="bNext" type="button">Next path ›</button>
 </div>
+<div class="ui" id="trackList" hidden></div>
 <div id="fade" aria-hidden="true"></div>
 <div id="classAg" hidden role="dialog" aria-label="What is taught in class"><div class="card"><button class="x" type="button" aria-label="Close">×</button><div class="lvl"><b>BASIC TRAINING</b>The core ideas, clearly explained — not a deep dive.</div><div class="tabs"></div><div class="body"></div></div></div>
 
@@ -980,16 +1003,16 @@ function dimOthers(b, k) {   // k: 0 = all normal, 1 = others faded
   });
   setOpacity(caseBody, lerp(0.4, 0.12, k), lerp(1, 0.4, k)); setOpacity(caseLid, lerp(0.08, 0.03, k), lerp(0.05, 0.02, k));
 }
-async function openInner(b) {
+async function openInner(b, quiet) {   // quiet: no names on the box (the list card shows them)
   b.rowsG.visible = true;
   await tween(0.7, k => { b.lidPivot.rotation.x = -2.0 * k; setOpacity(b.lid, lerp(1, 0.0, k), lerp(1, 0, k)); b.pl.intensity = 0.5 + 0.9 * k; b.hal.material.opacity = 0.22 + 0.18 * k; });
   b.lid.visible = false;
   tween(0.8, k => { const sy = lerp(1, TRAY, k); b.body.scale.y = sy; b.body.position.y = BOX.h * sy / 2; setOpacity(b.body, 1, lerp(1, 0.6, k));
     if (b.trayWD) { b.body.scale.x = lerp(1, b.trayWD[0] / BOX.w, k); b.body.scale.z = lerp(1, b.trayWD[1] / b.d, k); } });
   if (b.tiles) await Promise.all(b.rows.map((r, j) => wait(0.15 + j * 0.12).then(() => tween(0.55, k => { r.position.y = lerp(r.userData.home, r.userData.up + 0.55, k); })
-    .then(() => tween(0.35, k => { r.position.y = lerp(r.userData.up + 0.55, r.userData.up, k); })).then(() => show(b.rowLabels[j], true)))));
+    .then(() => tween(0.35, k => { r.position.y = lerp(r.userData.up + 0.55, r.userData.up, k); })).then(() => quiet || show(b.rowLabels[j], true)))));
   else await Promise.all(b.rows.map((r, j) => wait(j * 0.06).then(() => tween(0.7, k => { r.position.y = lerp(r.userData.home, r.userData.up, k); })
-    .then(() => show(b.rowLabels[j], true)))));
+    .then(() => quiet || show(b.rowLabels[j], true)))));
 }
 async function closeInner(b) {
   b.rowLabels.forEach(L => show(L, false));
@@ -1021,22 +1044,49 @@ async function openBundle(b) {
   }
   BUNDLES.forEach(o => xray(o, 0));
   busy = true; cur = b; level = 2; ui();
-  BUNDLES.forEach(o => show(o.label, false));
-  await Promise.all([flyTo(shot(2, b), 1.35), tween(0.6, k => dimOthers(b, k))]);
-  await openInner(b);
+  BUNDLES.forEach(o => show(o.label, o !== b));   // the other paths keep their names: click one to open it instead
+  // the camera stays where it is (all four paths in view); the box comes a little forward and opens in place
+  await Promise.all([flyTo(shotOpen(), 0.9), tween(0.8, (e, k) => { dimOthers(b, 0.55 * e); liftBox(b, e); })]);
+  await openInner(b, true);   // the names live in the list card; on the box they would be too small to read
+  showInvite(b);
   busy = false; ui();
-  turnOnce();
+}
+const LIFT = 0.9;
+const shotOpen = () => { const s = shot(1); return innerWidth <= 760 ? {...s, tz: s.tz + 4.5} : s; };   // phones: the boxes sit higher, clear of the track card   // how far the open box comes towards you
+function liftBox(b, k) { if (b.z0 === undefined) b.z0 = b.root.position.z; b.root.position.z = b.z0 + LIFT * k; b.root.scale.setScalar(1 + 0.3 * k); }   // forward and 30% bigger
+let INVITE = null;
+function showInvite(b) {   // a glowing banner over the open box: what it holds and that the tracks can be clicked
+  if (!INVITE) INVITE = label('invite', '', () => new THREE.Vector3(INVITE.b.root.position.x, INVITE.b.root.position.y + BOX.h * 1.3 + 2.1, INVITE.b.root.position.z - INVITE.b.d * 0.65), 'mid');
+  INVITE.b = b; INVITE.el.style.setProperty('--c', b.col);
+  INVITE.el.innerHTML = `<div class="ib"><span class="ey">PATH ${b.n} \u00b7 ${b.tracks.length} TRACKS</span><span class="go">${b.tbd ? 'Planned tracks \u00b7 <b>coming soon</b>' : `<b>${TOUCH ? 'Tap' : 'Click'} a track</b> to step inside`}</span></div>`;
+  show(INVITE, true);
+}
+function hideInvite() { if (INVITE) show(INVITE, false); }
+async function switchBundle(nb) {   // open another path without moving the camera
+  if (busy || nb === cur) return;
+  const b = cur; busy = true; hideInvite(); setHover(null);
+  await closeInner(b);
+  await tween(0.6, (e, k) => { liftBox(b, 1 - e); });
+  cur = nb; ui();
+  BUNDLES.forEach(o => show(o.label, o !== nb));
+  await tween(0.7, (e, k) => { liftBox(nb, e);
+    setOpacity(b.root, lerp(1, 0.16 + 0.84 * 0.45, e), lerp(1, 0.35 + 0.65 * 0.45, e)); b.fan.material.opacity = lerp(0.32, 0.06 + 0.26 * 0.45, e); b.glowK = lerp(1, 0.12 + 0.88 * 0.45, e);
+    setOpacity(nb.root, lerp(0.16 + 0.84 * 0.45, 1, e), lerp(0.35 + 0.65 * 0.45, 1, e)); nb.fan.material.opacity = lerp(0.06 + 0.26 * 0.45, 0.32, e); nb.glowK = lerp(0.12 + 0.88 * 0.45, 1, e); });
+  await openInner(nb, true);
+  showInvite(nb);
+  busy = false; ui();
 }
 async function closeBundle() {
   hideHint(false);
-  const b = cur; busy = true;
+  const b = cur; busy = true; hideInvite();
   await closeInner(b);
-  await Promise.all([flyTo(shot(1), 1.25), tween(0.6, k => dimOthers(b, 1 - k))]);
+  await Promise.all([flyTo(shot(1), 1.25), tween(0.6, (e, k) => { dimOthers(b, 0.55 * (1 - k)); liftBox(b, 1 - e); })]);
   BUNDLES.forEach(o => show(o.label, true));
   cur = null; level = 1; busy = false; ui();
 }
 async function nextBundle() {
   hideHint(false);
+  return switchBundle(OPEN[(OPEN.indexOf(cur) + 1) % OPEN.length]);
   const b = cur, nb = OPEN[(OPEN.indexOf(b) + 1) % OPEN.length]; busy = true;
   await closeInner(b);
   cur = nb; ui();
@@ -1751,6 +1801,7 @@ async function jumpTo(n) {   // a room of the current track, by its number 1–5
   teleport(gIdx(SES.j, n, SES.b));
 }
 async function openSession(b, j, s) {
+  hideInvite(); document.getElementById('trackList').hidden = true;
   SPD = 0.45;
   hideHint(true);
   busy = true; setHover(null);
@@ -1830,10 +1881,10 @@ async function exitSession(throughBack) {
     level = 2; SES = null; ui();
   }
   await fade(0, 0.45);
-  await flyTo(shot(2, b), 1.3);
+  await flyTo(shotOpen(), 1.6);   // back out to the view of all four paths, this one still open
   b.rows.forEach(r => r.position.y = r.userData.up);
-  b.rowLabels.forEach(L => show(L, true));
-  busy = false; caption();
+  showInvite(b);
+  busy = false; ui();
 }
 const closeSession = () => exitSession(false);
 function back() {
@@ -1851,6 +1902,10 @@ function pick() {
     return null;
   }
   if (level === 3 && SES) { if (!SES.inside) return null; const hit = ray.intersectObjects([...SES.boards, ...SES.arrows])[0]; return hit ? (hit.object.userData.station ? {kind: 'board', deck: hit.object.userData.deck, arcade: hit.object.userData.arcade, mesh: hit.object, st: hit.object.userData.station} : {kind: 'arrow'}) : null; }
+  if (level === 2 && cur && !busy) {   // another path's box: open that one instead
+    const rh = cur.rowsG.visible ? ray.intersectObjects(cur.rows.flatMap(r => [r.userData.slab.userData.mesh, ...r.userData.blocks])) : [];
+    if (!rh.length) for (const b of BUNDLES) if (b !== cur && ray.intersectObjects([b.body.userData.mesh, b.lid.userData.mesh]).length) return {kind: 'bundle', b};
+  }
   if (level === 2 && cur && cur.rowsG.visible) {
     const hits = ray.intersectObjects(cur.rows.flatMap(r => [r.userData.slab.userData.mesh, ...r.userData.blocks]));
     if (hits.length) { const hit = hits[0].object; let o = hit; while (o && o.userData.j === undefined) o = o.parent; if (!o) return null; const s = o.userData.blocks.indexOf(hit); return {kind: 'row', j: o.userData.j, s: cur.tiles ? 0 : s < 0 ? null : s}; }
@@ -1871,6 +1926,7 @@ function setHover(h) {
   hover = h;
   if (h && h.kind === 'bundle') { h.b.root.position.y = 0; h.b.pl.intensity = 1.0; h.b.cloud.material.opacity = 1; }
   if (h && h.kind === 'row' && h.s != null && HINT.b) hideHint(true);
+  document.querySelectorAll('#trackList button').forEach(bt => bt.classList.toggle('on', !!(h && h.kind === 'row' && +bt.dataset.j === h.j)));
   if (h && h.kind === 'row') {
     const r = cur.rows[h.j]; r.userData.slab.userData.edges.material.color.set(cur.col); if (cur.tiles) { r.position.y = r.userData.up + 0.08; r.userData.slab.userData.mesh.material.emissiveIntensity = 0.75; }
     r.userData.blocks.forEach((m, s) => { m.material.emissiveIntensity = s === h.s ? 1.4 : 0.75; });
@@ -1922,6 +1978,13 @@ function ui() {
   CR.innerHTML = parts.map(([t, l], i) => (i ? '<i>›</i>' : '') + `<button type="button" data-l="${l}" class="${l === level ? 'cur' : ''}">${esc(t)}</button>`).join('');
   CR.querySelectorAll('button').forEach(bt => bt.onclick = () => goLevel(+bt.dataset.l));
   NAV.hidden = level < 2; document.getElementById('bNext').hidden = level !== 2;
+  const TL = document.getElementById('trackList'); TL.hidden = !(level === 2 && cur && !busy);
+  if (!TL.hidden) {   // the tracks as a plain list: readable and easy to tap on any screen
+    TL.style.setProperty('--c', cur.col);
+    TL.innerHTML = `<div class="hd">PATH ${cur.n} \u00b7 ${esc(cur.name).toUpperCase()} \u00b7 ${cur.tracks.length} TRACKS</div><div class="inv">${cur.tbd ? 'Planned tracks \u00b7 <b>coming soon</b>' : `<b>${TOUCH ? 'Tap' : 'Click'} a track</b> to step inside`}</div>` + cur.tracks.map((t, j) => `<button type="button" data-j="${j}"><b>${j + 1}</b><span>${esc(t[0])}</span></button>`).join('') +
+      `<div class="ft">${cur.tbd ? 'Planned tracks \u00b7 coming soon' : `${TOUCH ? 'Tap' : 'Click'} a track, or a track on the box, to step inside`}</div>`;
+    TL.querySelectorAll('button').forEach(bt => bt.onclick = () => { if (busy) return; const j = +bt.dataset.j; if (cur.tbd) { CAP.innerHTML = `<span class="c" style="--c:${cur.col}">${esc(cur.tracks[j][0])}</span><br>${esc(cur.tracks[j][1])}`; } else { hideInvite(); openSession(cur, j, 0); } });
+  }
   const WB = document.getElementById('wallBtns'); WB.hidden = level !== 3;
   const STR = document.getElementById('strip'); STR.hidden = !(level === 3 && SES);
   if (level === 3 && SES) {
@@ -2009,6 +2072,7 @@ canvas.addEventListener('pointerup', e => {
   const h = pick();
   if (level === 0 && h) openCase();
   else if (level === 1 && h) { setHover(null); openBundle(h.b); }
+  else if (level === 2 && h && h.kind === 'bundle') { switchBundle(h.b); }
   else if (level === 2 && h && h.kind === 'row' && h.s != null) { const {j, s} = h; if (cur.tbd) { CAP.innerHTML = `<span class="c" style="--c:${cur.col}">${esc(cur.tracks[j][0])}</span><br>${esc(cur.tracks[j][1])}`; } else openSession(cur, j, s); }
   else if (level === 3 && h && h.kind === 'board' && h.deck && SES) openDeck(h.deck, h.mesh);
   else if (level === 3 && h && h.kind === 'board' && h.arcade && SES) pressArcade(h.arcade);
@@ -2051,7 +2115,7 @@ addEventListener('keydown', e => {
 function resize() {
   renderer.setSize(innerWidth, innerHeight, false);
   camera.aspect = innerWidth / innerHeight; setFov(FOV_BASE);
-  if (!busy) Object.assign(rig, shot(level, cur));
+  if (!busy) Object.assign(rig, level === 2 ? shotOpen() : shot(level, cur));   // an open path keeps the four-path view
 }
 addEventListener('resize', resize);
 resize();
@@ -2077,6 +2141,9 @@ function frame(now) {
   if (caseG.visible && level === 0) caseGlows.forEach(m => m.material.opacity = m.userData.base * (0.7 + 0.3 * Math.sin(tt * 1.6)));
   BUNDLES.forEach(b => b.glows.forEach(m => m.material.opacity = m.userData.base * b.glowK * (0.75 + 0.25 * Math.sin(tt * 1.3 + b.i * 2))));
   brightStars.material.opacity = 0.75 + 0.25 * Math.sin(tt * 2.1);
+  if (level === 2 && cur && !busy && !hover && cur.rowsG.visible) {   // the open path's tracks breathe, one after another: they can be clicked
+    cur.rows.forEach((r, j) => { const p = 0.5 + 0.5 * Math.sin(tt * 2.2 - j * 0.6);
+      if (cur.tiles) r.userData.slab.userData.mesh.material.emissiveIntensity = 0.42 + 0.35 * p; else r.userData.blocks.forEach(m => m.material.emissiveIntensity = 0.45 + 0.3 * p); }); }
   if (seal.visible && !busy) { runes.rotation.y = tt * (SEAL_HOT ? 0.8 : 0.25); sealRings[1].rotation.z = -tt * 0.4; sealGlow.material.opacity = (SEAL_HOT ? 0.42 : GUIDED ? 0.28 : 0.18) + 0.08 * Math.sin(tt * (GUIDED ? 3 : 1.8)); }
   if (level === 0 && !busy && wand.visible) { wand.position.y = WAND_REST.y + 0.14 * Math.sin(tt * 1.5); tip.material.color.setHSL(0.12, 1, 0.82 + 0.08 * Math.sin(tt * 4)); }
   stepBurst(now);
