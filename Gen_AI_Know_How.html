@@ -71,6 +71,14 @@ html,body{height:100%;margin:0;background:radial-gradient(120% 75% at 50% 24%,#0
 #crumbs i{color:#3b4862;font-style:normal}
 #bright{pointer-events:auto}
 #top #bAgenda{pointer-events:auto}
+#top #bMusic{pointer-events:auto;margin-left:8px;display:inline-flex;align-items:center;gap:6px;border-radius:999px;padding:7px 12px;font-size:10.5px;letter-spacing:.14em;color:#9aa8bf}
+#top #bMusic .ic{font:600 15px/1 var(--sans);letter-spacing:0}
+#top #bMusic.on{color:#ffe7a8;border-color:#e8c77a;box-shadow:0 0 12px rgba(232,199,122,.35)}
+#top #bMusic.on .ic{animation:musBeat 1.8s ease-in-out infinite}
+@keyframes musBeat{50%{opacity:.45}}
+@media (max-width:700px){#top #bMusic{padding:7px 10px;margin-left:6px}#top #bMusic .tx{display:none}}
+#copy .mc a{color:inherit;pointer-events:auto}
+#copy .mc{display:block}
 .agbtn{margin-left:auto;pointer-events:auto}
 #top #bAgenda{font-weight:700;font-size:11.5px;letter-spacing:.14em;text-transform:uppercase;color:#062016;background:#5fd6a0;border:1px solid #7fe3b8;border-radius:999px;padding:8px 15px;box-shadow:none}
 #top #bAgenda:hover,#top #bAgenda:focus-visible{background:#78e3b3;outline:none}
@@ -235,7 +243,6 @@ html,body{height:100%;margin:0;background:radial-gradient(120% 75% at 50% 24%,#0
 @media (max-width:700px){.neon,#wallBtns .exitb{width:30px;height:30px;margin:0 6px}.neon svg,#wallBtns .exitb svg{width:16px;height:16px}.neon::before,#wallBtns .exitb::before{inset:-5px;border-radius:8px}}
 </style>
 
-</head><body>
 <canvas id="gl" aria-label="Three-dimensional course agenda"></canvas>
 <div id="labels"></div>
 <div class="ui" id="top">
@@ -243,6 +250,7 @@ html,body{height:100%;margin:0;background:radial-gradient(120% 75% at 50% 24%,#0
   <span id="brand">BIGOHACADEMY · T07</span>
   <nav id="crumbs" aria-label="Where you are"></nav>
   <button class="btn agbtn" id="bAgenda" type="button">What's taught in class</button>
+  <button class="btn" id="bMusic" type="button" aria-pressed="false" aria-label="Background music on or off" title="Background music · Satie, Gymnopédie No. 1"><span class="ic">♪</span><span class="tx">MUSIC</span></button>
 </div>
 <div class="ui" id="caption" aria-live="polite"></div>
 <div class="ui" id="zoom"><button class="btn" type="button" data-z="-1" aria-label="Zoom in">+</button><button class="btn" type="button" data-z="1" aria-label="Zoom out">−</button></div>
@@ -255,7 +263,7 @@ html,body{height:100%;margin:0;background:radial-gradient(120% 75% at 50% 24%,#0
 <div id="fade" aria-hidden="true"></div>
 <div id="classAg" hidden role="dialog" aria-label="What is taught in class"><div class="card"><button class="x" type="button" aria-label="Close">×</button><div class="lvl"><b>BASIC TRAINING</b>The core ideas, clearly explained — not a deep dive.</div><div class="tabs"></div><div class="body"></div></div></div>
 
-<div id="copy">© 2026 BigOhAcademy · Ramalingam Vijayakumaran Nair · All rights reserved</div>
+<div id="copy">© 2026 BigOhAcademy · Ramalingam Vijayakumaran Nair · All rights reserved<span class="mc">Music: Satie, Gymnopédie No. 1 · <a href="https://commons.wikimedia.org/wiki/File:Kevin_MacLeod_-_Erik_Satie_Gymnopedie_No_1.ogg" target="_blank" rel="noopener">Kevin MacLeod</a>, <a href="https://creativecommons.org/licenses/by/3.0" target="_blank" rel="noopener">CC BY 3.0</a>, via Wikimedia Commons</span></div>
 <div id="nogl" hidden>
   <div class="fb">
     <div class="fb-ey">BIGOHACADEMY · T07</div>
@@ -298,7 +306,7 @@ const BUNDLES = [
      ['Evals & Observability', 'Is it working, and can we see why?'],
      ['Security & Governance', 'Can it be attacked, and who is allowed to do what?']]},
   {n: 3, name: 'Enterprise SI Platform', col: '#8fe0bf', pos: [8.6, 0, 0],
-   line: 'SI cloud offerings: AWS · Azure · GCP',
+   line: 'Start here, then the same building blocks on AWS, Azure and GCP',
    tracks: [['Start here: one map, three clouds', 'The same building blocks on every cloud'],
      ['AWS · Bedrock', 'Bedrock models, Knowledge Bases and AgentCore'],
      ['Azure · Foundry', 'Microsoft Foundry models, AI Search and agents'],
@@ -2112,5 +2120,47 @@ function frame(now) {
 }
 requestAnimationFrame(frame);
 window.__map = {deck: k => openDeck(k), arcade: () => pressArcade(SES.boards[6].userData.arcade), closeDeck, deckOpen: () => DECK_OPEN, ses: () => SES, walk, jumpTo, skipToDoor, openCase, openBundle: i => openBundle(BUNDLES[i]), openSession: (j, s) => openSession(cur, j, s), nextBundle, back, state: () => ({level, busy, cur: cur && cur.n, yaw: +rig.yaw.toFixed(3)})};
+})();
+</script>
+<script>
+// background music: off until the visitor asks for it; quiet, with slow fades; remembers the choice.
+// volume goes through a Web Audio gain node, because iPhone Safari ignores audio.volume.
+(() => {
+  const btn = document.getElementById('bMusic'); if (!btn) return;
+  const VOL = 0.22, KEY = 't07music';
+  const el = new Audio('Gymnopedie_No1.mp3'); el.loop = true; el.preload = 'none'; el.crossOrigin = 'anonymous';
+  let ctx = null, gain = null, on = false;
+  try { on = localStorage.getItem(KEY) === '1'; } catch (e) {}
+  function graph() {
+    if (ctx) return;
+    const AC = window.AudioContext || window.webkitAudioContext;
+    if (!AC) return;
+    try { ctx = new AC(); gain = ctx.createGain(); gain.gain.value = 0; ctx.createMediaElementSource(el).connect(gain).connect(ctx.destination); } catch (e) { ctx = null; gain = null; }
+  }
+  function fade(to, secs) {
+    if (gain) { const t = ctx.currentTime; gain.gain.cancelScheduledValues(t); gain.gain.setValueAtTime(gain.gain.value, t); gain.gain.linearRampToValueAtTime(to, t + secs); }
+    else el.volume = to;   // no Web Audio: plain volume (desktop browsers honour it)
+  }
+  function start() {
+    graph();
+    if (ctx && ctx.state === 'suspended') ctx.resume();
+    el.play().then(() => fade(VOL, 3)).catch(() => {});
+  }
+  function stop() { fade(0, 0.8); setTimeout(() => { if (!on) el.pause(); }, 900); }
+  function set(v) {
+    on = v; try { localStorage.setItem(KEY, v ? '1' : '0'); } catch (e) {}
+    btn.classList.toggle('on', v); btn.setAttribute('aria-pressed', String(v));
+    v ? start() : stop();
+  }
+  btn.addEventListener('click', e => { e.stopPropagation(); set(!on); });
+  if (on) {   // remembered: browsers allow sound only after a click or tap, so begin on the first one
+    btn.classList.add('on'); btn.setAttribute('aria-pressed', 'true');
+    const go = e => { if (e.target === btn || btn.contains(e.target)) return; removeEventListener('pointerdown', go, true); removeEventListener('keydown', go, true); if (on) start(); };
+    addEventListener('pointerdown', go, true); addEventListener('keydown', go, true);
+  }
+  document.addEventListener('visibilitychange', () => {   // another tab: fade out; back: fade in again
+    if (!on || !el.currentTime) return;
+    if (document.hidden) { fade(0, 0.6); setTimeout(() => { if (document.hidden) el.pause(); }, 700); } else start();
+  });
 })();
 </script>
