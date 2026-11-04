@@ -2127,7 +2127,7 @@ window.__map = {deck: k => openDeck(k), arcade: () => pressArcade(SES.boards[6].
 // volume goes through a Web Audio gain node, because iPhone Safari ignores audio.volume.
 (() => {
   const btn = document.getElementById('bMusic'); if (!btn) return;
-  const VOL = 0.22, KEY = 't07music';
+  const VOL = 0.22, KEY = 't07music2';   // new key: choices saved while testing the off-by-default version are ignored
   const el = new Audio('Gymnopedie_No1.mp3'); el.loop = true; el.preload = 'none'; el.crossOrigin = 'anonymous';
   let ctx = null, gain = null, on = false;
   on = true; try { on = localStorage.getItem(KEY) !== '0'; } catch (e) {}   // on unless the visitor switched it off before
@@ -2156,8 +2156,10 @@ window.__map = {deck: k => openDeck(k), arcade: () => pressArcade(SES.boards[6].
   if (on) {   // browsers allow sound only after a click or tap: try now (some allow it on return visits), else begin on the first one
     btn.classList.add('on'); btn.setAttribute('aria-pressed', 'true');
     el.play().then(() => { graph(); if (ctx && ctx.state === 'running') fade(VOL, 3); else el.pause(); }).catch(() => {});
-    const go = e => { if (e.target === btn || btn.contains(e.target)) return; removeEventListener('pointerdown', go, true); removeEventListener('keydown', go, true); if (on) start(); };
-    addEventListener('pointerdown', go, true); addEventListener('keydown', go, true);
+    // only a finished click or tap counts as permission to play (iPhone ignores touch-down), so listen for those
+    const EV = ['click', 'touchend', 'pointerup', 'keydown'];
+    const go = e => { if (e.target === btn || btn.contains(e.target)) return; EV.forEach(t => removeEventListener(t, go, true)); if (on) start(); };
+    EV.forEach(t => addEventListener(t, go, true));
   }
   document.addEventListener('visibilitychange', () => {   // another tab: fade out; back: fade in again
     if (!on || !el.currentTime) return;
