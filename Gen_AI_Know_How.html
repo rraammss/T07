@@ -2123,14 +2123,14 @@ window.__map = {deck: k => openDeck(k), arcade: () => pressArcade(SES.boards[6].
 })();
 </script>
 <script>
-// background music: off until the visitor asks for it; quiet, with slow fades; remembers the choice.
+// background music: on by default (starts with the first click or tap; browsers allow nothing sooner); quiet, slow fades; remembers if switched off.
 // volume goes through a Web Audio gain node, because iPhone Safari ignores audio.volume.
 (() => {
   const btn = document.getElementById('bMusic'); if (!btn) return;
   const VOL = 0.22, KEY = 't07music';
   const el = new Audio('Gymnopedie_No1.mp3'); el.loop = true; el.preload = 'none'; el.crossOrigin = 'anonymous';
   let ctx = null, gain = null, on = false;
-  try { on = localStorage.getItem(KEY) === '1'; } catch (e) {}
+  on = true; try { on = localStorage.getItem(KEY) !== '0'; } catch (e) {}   // on unless the visitor switched it off before
   function graph() {
     if (ctx) return;
     const AC = window.AudioContext || window.webkitAudioContext;
@@ -2153,8 +2153,9 @@ window.__map = {deck: k => openDeck(k), arcade: () => pressArcade(SES.boards[6].
     v ? start() : stop();
   }
   btn.addEventListener('click', e => { e.stopPropagation(); set(!on); });
-  if (on) {   // remembered: browsers allow sound only after a click or tap, so begin on the first one
+  if (on) {   // browsers allow sound only after a click or tap: try now (some allow it on return visits), else begin on the first one
     btn.classList.add('on'); btn.setAttribute('aria-pressed', 'true');
+    el.play().then(() => { graph(); if (ctx && ctx.state === 'running') fade(VOL, 3); else el.pause(); }).catch(() => {});
     const go = e => { if (e.target === btn || btn.contains(e.target)) return; removeEventListener('pointerdown', go, true); removeEventListener('keydown', go, true); if (on) start(); };
     addEventListener('pointerdown', go, true); addEventListener('keydown', go, true);
   }
